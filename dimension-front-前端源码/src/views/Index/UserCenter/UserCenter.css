@@ -1,0 +1,252 @@
+.body {
+    /*background-image: url("@/static/image/fm5.jpg");*/
+    /*background-image: url("@/static/image/user-center-background.jpg");*/
+    background-image: url("@/static/image/default-banner.jpg");
+    background-size: 100% 100%;
+    background-attachment: fixed;
+    background-position: bottom;
+}
+.background-and-user-avatar {
+    border: 1px white solid;
+    height: 200px;
+    /*background-image: url("@/static/image/user-center-background.jpg");*/
+    /*background-image: url("@/static/image/fm5.jpg");*/
+    /*background-image: url("@/static/image/default-banner.jpg");*/
+    /*background-size: 100% 100%;*/
+    /*background-attachment: fixed;*/
+    /*background-image: url("@/static/image/66272182bbdaaee5700a7aaa7a05c5e1cca03b89.jpg@942w_666h_progressive.webp");*/
+    /*background-image: url("@/static/image/girl_hairpin_dress_896537_1280x720.jpg");*/
+    /*background-image: url("@/static/image/13.jpg");*/
+    /*background-image: url("@/static/image/kv03.f60ecc51.png");*/
+}
+/*用户头像*/
+.user-avatar{
+    float: left;
+    margin-left: 50px;
+}
+.user-avatar img{
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-top: 40px;
+    /*padding-top: 40px;*/
+}
+/*用户昵称和个人简介*/
+.user-nickname-and-description{
+    margin-top: 70px;
+    margin-left: 200px;
+}
+.description{
+    margin-top: 20px;
+}
+
+/*下部框*/
+.bottom-user-tabs-region{
+    /*border: 2px solid black;*/
+    /*height: 700px;*/
+}
+
+/*1.个人信息*/
+.el-form{
+    margin-left: 100px;
+}
+
+/*2.收藏*/
+.collect-image-list{
+    /*border: blue 1px solid;*/
+    height: 600px;
+}
+/*单个图片*/
+.collect-image-div{
+    /*border: 1px solid pink;*/
+    float: left;
+    margin-left: 100px;
+    margin-top: 50px;
+}
+/*图片内容*/
+.image-detail img {
+    width: 300px;
+    height: 200px;
+}
+/*分数、收藏数、浏览数展示 + 标签列表 + 收藏时间 + 删除按钮*/
+.score-collects-views,.tag-list{
+    text-align: center;
+}
+.tag-list{
+    /*border-top: 1px pink solid;*/
+    /*border-bottom: 1px pink solid;*/
+}
+.history {
+    height: 900px;
+}
+.collect-time{
+    float: left;
+    margin-left: 30px;
+}
+.delete span{
+    padding-left: 30px;
+}
+/*分页器*/
+.pagination{
+    /*position: absolute;*/
+    /*top: 500px;*/
+    /*left: 620px;*/
+    text-align: center;
+}
+.history-pagination {
+    position: absolute;
+    top: 400px;
+    left: 720px;
+    /*text-align: center;*/
+}
+/*3.历史*/
+.history-image-list{
+    /*border: blue 3px solid;*/
+    height: 600px;
+}
+/*单个图片*/
+.history-image-div{
+    /*border: 1px solid pink;*/
+    float: left;
+    margin-left: 100px;
+    margin-top: 50px;
+}
+.history-pagination {
+    text-align: center;
+}
+/*图片内容*/
+.history-image img{
+    width: 300px;
+    height: 200px;
+}
+/*分数、收藏数、浏览数展示 + 标签列表 + 收藏时间 + 删除按钮*/
+.history-body-tagList,.history-body-bottom{
+    text-align: center;
+}
+/*评分*/
+.left{
+    /*border-top: 1px pink solid;*/
+    /*border-bottom: 1px pink solid;*/
+}
+/*分类*/
+.right{
+    /*border-bottom: 1px pink solid;*/
+}
+.time{
+    float: left;
+    margin-left: 55px;
+}
+.delete-button{
+    text-align: center;
+}
+.delete-button img{
+    width: 20px;
+    cursor: pointer;
+}
+/*分页器*/
+.history-pagination{
+    margin-top: 380px;
+}
+
+/*4.修改信息标签页*/
+/*4.1修改头像*/
+/*top*/
+.top{
+    /*border: 2px solid blue;*/
+    height: 200px;
+}
+.select-image{
+    float: left;
+    margin-left: 450px;
+    margin-top: 50px;
+    border-right: gray 1px solid;
+    height: 140px;
+    padding-top: 40px;
+    padding-right: 40px;
+}
+.current-image img{
+    border-radius: 50%;
+    width: 120px;
+    margin-top: 30px;
+    margin-left: 30px;
+}
+.bottom{
+    margin-left: 570px;
+}
+
+/*4.2修改信息*/
+.update-form{
+    /*border: 1px solid black;*/
+}
+/*昵称*/
+.update-form .name{
+    margin-left: 300px;
+}
+.NameInput{
+    margin-left: 25px;
+    width: 300px;
+}
+/*我的签名*/
+.update-form .sign{
+    margin-left: 325px;
+}
+.SignInput{
+    width: 300px;
+    resize: none;
+}
+/*性别*/
+.gender{
+    margin-left: 300px;
+    margin-top: -10px;
+}
+.GenderRadio{
+    margin-left: 25px;
+}
+/*出生日期*/
+.birthday{
+    margin-left: 325px;
+    margin-top: -10px;
+}
+/*保存*/
+.updateInfoButton{
+    margin-left: 470px;
+}
+
+/*4.3修改密码*/
+.PwdForm{
+    margin-left: 300px;
+}
+.pwdInput,.newpwdInput1{
+    width: 300px;
+    margin-left: 20px;
+}
+.newpwdInput2{
+    width: 300px;
+    margin-left: 5px;
+}
+.newpwdInput2Lable{
+    margin-left: 15px;
+}
+.pwdButton{
+    margin-left: 640px;
+}
+.body-image {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image:hover {
+    cursor: pointer;
+    transform: scale(1.1); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+
+
+
+
+
+
+
+
+
+
+
+

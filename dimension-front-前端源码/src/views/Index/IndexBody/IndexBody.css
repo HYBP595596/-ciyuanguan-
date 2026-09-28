@@ -1,0 +1,97 @@
+.body {
+    /*background-image: url("@/static/image/fm5.jpg");*/
+    /*background-image: url("@/static/image/user-center-background.jpg");*/
+    background-image: url("@/static/image/default-banner.jpg");
+    background-size: 100% 100%;
+    background-attachment: fixed;
+    background-position: bottom;
+    height: 1100px;
+    opacity: 0.9;
+    /*background: rgba(255, 255, 255, 0.7);*/
+}
+/*左侧大框*/
+.category{
+    width: 250px;
+    height: 700px;
+    /*border: 1px solid black;*/
+    float: left;
+}
+/*分类小框*/
+.category-div{
+    width: 100px;
+    height: 30px;
+    /*background-color: pink;*/
+    background-color: #46d9ec;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    padding-top: 8px;
+    margin-top: 20px;
+    margin-left: 120px;
+}
+/*分类的第一个框*/
+.category-div:first-child{
+    margin-top: 50px;
+}
+
+/*右侧大框*/
+.image-list-body{
+    height: 1000px;
+    /*border: 3px solid red;*/
+}
+
+/*图片列表区域*/
+.image-list{
+    /*border: 3px solid green;*/
+    height: 1000px;
+    margin-top: 20px;
+}
+/*单个图片详情框*/
+.image{
+    /*border: 1px solid pink;*/
+    float: left;
+    margin-left: 90px;
+    margin-top: 50px;
+}
+.image:hover {
+    cursor: pointer;
+}
+/*图片内容*/
+.image-detail img {
+    width: 300px;
+    height: 217px;
+}
+/*分数、收藏数、浏览数展示 + 标签列表*/
+.score-collects-views,.tag-list{
+    text-align: center;
+}
+.tag-list{
+    /*border-top: 1px grey solid;*/
+}
+/*分页器*/
+.pagination{
+    text-align: center;
+    /*margin-left: 660px;*/
+}
+.body {
+    /*height: 1000px;*/
+    /*background-color: #1c1c1c;*/
+}
+.body-image {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image:hover {
+    transform: scale(1.1); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.body-image2 {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image2:hover {
+    transform: scale(1.05); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.new-font:hover {
+    text-decoration: underline;
+}

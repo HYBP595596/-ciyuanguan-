@@ -1,0 +1,28 @@
+/*搜索框*/
+.search-input{
+    width: 300px;
+    float: left;
+    margin-left: 500px;
+    margin-top: 40px;
+    margin-bottom: 30px;
+}
+.placeholder{
+    float: left;
+}
+.search{
+    position: absolute;
+}
+/*新增按钮*/
+.add-button{
+    position: absolute;
+    top:120px;
+    right: 50px;
+}
+/*分页器*/
+.pagination{
+    margin-top: 2%;
+    /*margin-left: 350px;*/
+}
+.image-image {
+    width: 200px;
+}

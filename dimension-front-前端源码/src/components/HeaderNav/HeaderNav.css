@@ -1,0 +1,104 @@
+.my-hover:hover {
+    color: aqua;
+    text-decoration: underline;
+}
+.body-image2 {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image2:hover {
+    transform: scale(1.05); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.new-body {
+    background-color: #fff;
+    box-shadow: 0 105px 10px 0 rgba(0,0,0,0.3);
+}
+.body{
+
+    /*background-color: #161615;*/
+    margin-top: 30px;
+    margin-bottom: 60px;
+}
+.nav{
+    border-bottom: 1px solid pink;
+    height: 80px;
+    /*margin-top: 10px;*/
+}
+/*按钮总样式*/
+.collect,.history,.login-button{
+    width: 100px;
+    height: 30px;
+    background-color: #409eff;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    padding-top: 8px;
+}
+/*首页*/
+.index{
+    position: relative;
+    cursor: pointer;
+    padding-top: 8px;
+    float: left;
+    top: 10px;
+    left: 80px;
+    width: 150px;
+    height: 30px;
+}
+.index p{
+    font-size: 50px;
+}
+/*搜索框*/
+.search-input{
+    position: absolute;
+    left: 600px;
+    top: 65px;
+    float: left;
+}
+.search{
+    left: 230px;
+    position: absolute;
+    top: 0px;
+}
+/*登录和头像的外框*/
+.login-button-or-user-image{
+    width: 200px;
+    height: 70px;
+    /*border: 1px solid black;*/
+    float: left;
+    position: absolute;
+    left: 1050px;
+}
+/*登录*/
+.login-button{
+    margin-top: 35px;
+}
+.collect{
+    float: left;
+    top: 35px;
+    left: 1050px;
+}
+/*历史*/
+.history{
+    float: left;
+    top: 35px;
+    left: 1100px;
+}
+.body {
+    height: 50px;
+    /*background-color: red;*/
+}
+.user-image img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+.body-image {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image:hover {
+    cursor: pointer;
+    transform: scale(1.2); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}

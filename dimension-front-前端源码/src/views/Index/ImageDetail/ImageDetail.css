@@ -1,0 +1,215 @@
+/*.body {*/
+/*    !*background-image: url("@/static/image/fm5.jpg");*!*/
+/*    !*background-image: url("@/static/image/user-center-background.jpg");*!*/
+/*    background-image: url("@/static/image/fm4.jpg");*/
+/*    background-size: 100% 100%;*/
+/*    background-attachment: fixed;*/
+/*    background-position: bottom;*/
+/*    !*height: 1100px;*!*/
+/*    !*opacity: 0.5;*!*/
+/*    !*background: rgba(255, 255, 255, 0.7);*!*/
+/*}*/
+/*页面中心部分大框*/
+.ImageDetailCenter{
+    /*修改和页脚的距离*/
+    height: 950px;
+    /*border: 3px solid black;*/
+}
+
+/*左侧大框*/
+.category{
+    width: 250px;
+    height: 700px;
+    /*border: 2px solid black;*/
+    float: left;
+}
+/*分类小框*/
+.category-div{
+    width: 100px;
+    height: 30px;
+    /*background-color: pink;*/
+    background-color: #46d9ec;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    padding-top: 8px;
+    margin-top: 20px;
+    margin-left: 120px;
+}
+/*分类的第一个框*/
+.category-div:first-child{
+    margin-top: 50px;
+}
+
+/*中间大框*/
+.image-detail-region{
+    /*border: 3px solid red;*/
+    float: left;
+    margin-left: 90px;
+}
+/*1.图片详情 = 图片标签 + 图片*/
+.image-detail{
+    margin-top: 30px;
+    /*border: 1px pink solid;*/
+    height: 500px;
+}
+/*图片*/
+.image img {
+    width: 750px;
+    height: 471px;
+    padding-top: 10px;
+    /*cursor: pointer;*/
+}
+/*2.分数、浏览数、收藏、下载部分*/
+.other-option{
+    /*border: 1px pink solid;*/
+    margin-top: 10px;
+    height: 90px;
+}
+/*分数 + 投票（框-left）+ 浏览数和上传时间展示(框-center) + 收藏和下载按钮(框-right)*/
+.like-or-dislike,.view-and-upload-time,.collect-and-download{
+    /*border:2px solid mediumpurple;*/
+    float: left;
+    margin-top: 20px;
+    margin-left: 60px;
+}
+/*点赞or拉踩(left)*/
+.rating>img{
+    width: 30px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+/*收藏和下载按钮(框-right)*/
+.collect-and-download{
+    width: 200px;
+    margin-left:50px;
+}
+/*收藏按钮（right）*/
+.collect{
+    float: left;
+}
+/*下载按钮(right)*/
+.download{
+    float: left;
+    margin-left: 10px
+}
+/*3.评论*/
+.comment-list-region{
+    margin-top:10px;
+    /*border: 1px pink solid;*/
+}
+/*评论数和评论按钮(框-top)*/
+.comment-count-and-comment-button{
+    /*border: 2px black solid;*/
+    margin-top: 10px;
+}
+/*评论数(top)*/
+.comment-count{
+    float: left;
+    padding-top: 10px;
+    padding-left: 20px;
+}
+/*评论按钮(top)*/
+.comment-button{
+    margin-left: 605px;
+}
+/*评论展示区（框-center）*/
+.comment-list{
+    /*border: black 2px solid;*/
+}
+/*各个评论(center)*/
+.comment-and-user{
+    /*border: green 2px solid;*/
+    margin-left: 20px;
+    margin-top: 10px;
+}
+/*评论者头像 div*/
+.user-avatar{float: left}
+.user-avatar>img{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+/*用户昵称 + 评论 = div*/
+.user-nickname-and-comment{
+}
+/*昵称*/
+.user-nickname{
+    margin-left: 60px;
+}
+/*评论内容*/
+.user-nickname-and-comment>.comment{
+    /*border: gray 2px solid;*/
+    /*border-radius: 5px;*/
+    width: 500px;
+    margin-left: 60px;
+    margin-top: 5px;
+    /*评论超出的部分隐藏*/
+    overflow: hidden;
+    /*用省略号代替超出的部分*/
+    text-overflow: ellipsis;
+}
+/*分页器*/
+.pagination{
+    text-align: center;
+    margin-top: 15px;
+    /*margin-left: 200px;*/
+    margin-bottom: 10px;
+}
+
+/*右侧大框*/
+.recommend-image-list{
+    /*border: 3px solid blue;*/
+    float: left;
+    margin-left: 80px;
+    margin-top: 30px;
+    /*cursor: pointer;*/
+}
+/*相关推荐（文字）*/
+.font{
+    margin-bottom: -20px;
+}
+/*推荐块*/
+.recommend-image{
+    /*border: 1px solid pink;*/
+    margin-top: 30px;
+    cursor: pointer;
+}
+/*相关推荐-图片大小*/
+.recommend-image-detail img {
+    width: 284px;
+    height: 148px;
+}
+/*分数、收藏数、浏览数展示*/
+.score-collects-views{
+    text-align: center;
+}
+/*推荐-图片-标签*/
+.tag-list{
+    /*border-top: gray 1px solid;*/
+    text-align: center;
+}
+.body-image {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image:hover {
+    transform: scale(1.1); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.body-image2 {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image2:hover {
+    transform: scale(1.05); /*鼠标移动到图片上时放大1.2倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.new-font:hover {
+    text-decoration: underline;
+}
+
+
+
+
+
+
