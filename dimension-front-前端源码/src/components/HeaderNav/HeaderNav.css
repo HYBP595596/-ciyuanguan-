@@ -1,3 +1,8 @@
+/* ========================================
+   HeaderNav.css - 完整版
+   ======================================== */
+
+/* 顶部栏容器 */
 .hn-bar {
   display: flex;
   align-items: center;
@@ -6,14 +11,43 @@
   padding: 0 24px;
   background: #fff;
   border-bottom: 1px solid #e6e6e6;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
+
+/* 折叠按钮 */
+.hn-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  margin-right: 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.hn-collapse-btn:hover {
+  background: #f0f0f0;
+}
+.hn-collapse-btn i {
+  font-size: 22px;
+  color: #555;
+}
+
+/* Logo */
 .hn-logo {
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
+  color: #303133;
 }
+.hn-logo:hover {
+  color: #409EFF;
+}
+
+/* 搜索区 */
 .hn-search {
   display: flex;
   align-items: center;
@@ -24,38 +58,64 @@
 .hn-search .el-input {
   flex: 1;
 }
+
+/* 右侧区域 */
 .hn-right {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-shrink: 0;
 }
+
+/* 普通文字链接 */
 .hn-item {
   font-size: 14px;
   color: #555;
   cursor: pointer;
   white-space: nowrap;
+  transition: color 0.2s;
 }
-.hn-item:hover { color: #409EFF; }
+.hn-item:hover {
+  color: #409EFF;
+}
+
+/* 图标按钮 */
 .hn-icon {
   font-size: 18px;
   color: #666;
   cursor: pointer;
+  transition: color 0.2s;
 }
-.hn-icon:hover { color: #409EFF; }
+.hn-icon:hover {
+  color: #409EFF;
+}
+
+/* 登录按钮 */
 .hn-login {
   color: #409EFF;
   font-weight: 500;
   cursor: pointer;
   font-size: 14px;
+  transition: opacity 0.2s;
 }
+.hn-login:hover {
+  opacity: 0.8;
+}
+
+/* 头像 */
 .hn-avatar {
-  width: 34px;
-  height: 34px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
+  transition: opacity 0.2s;
 }
+.hn-avatar:hover {
+  opacity: 0.85;
+}
+
+/* 头像占位（无头像时用） */
 .hn-avatar-dummy {
   width: 34px;
   height: 34px;
@@ -67,21 +127,78 @@
   justify-content: center;
   cursor: pointer;
   font-size: 14px;
-}.hn-collapse-btn {
+  transition: opacity 0.2s;
+}
+.hn-avatar-dummy:hover {
+  opacity: 0.85;
+}
+
+/* ========================================
+   关注/粉丝统计模块（下拉菜单内）
+   ======================================== */
+
+/* 下拉菜单容器微调 */
+.hn-dropdown-menu {
+  padding: 0 !important;
+  min-width: 180px;
+}
+
+/* 统计块整体 */
+.hn-stats {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  gap: 12px;
+  padding: 14px 10px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #ebeef5;
+  cursor: default;
+}
+
+/* 单个统计项 */
+.hn-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
   cursor: pointer;
-  margin-right: 12px;
-  border-radius: 6px;
+  padding: 4px 12px;
+  border-radius: 8px;
   transition: background 0.2s;
+  min-width: 52px;
 }
-.hn-collapse-btn:hover {
-  background: #f0f0f0;
+.hn-stat-item:hover {
+  background: #ecf5ff;
 }
-.hn-collapse-btn i {
-  font-size: 22px;
-  color: #555;
+
+/* 数字 */
+.hn-stat-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #303133;
+  transition: color 0.2s;
+}
+.hn-stat-item:hover .hn-stat-num {
+  color: #409EFF;
+}
+
+/* 标签文字 */
+.hn-stat-label {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 2px;
+  transition: color 0.2s;
+}
+.hn-stat-item:hover .hn-stat-label {
+  color: #409EFF;
+}
+
+/* ========================================
+   Element UI 下拉菜单项微调
+   ======================================== */
+
+.el-dropdown-menu__item {
+  padding: 8px 20px;
+  text-align: center;
 }

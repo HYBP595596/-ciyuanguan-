@@ -4,6 +4,7 @@
       <i class="el-icon-s-fold" v-if="!sidebarCollapsed"></i>
       <i class="el-icon-s-unfold" v-else></i>
     </div>
+
     <!-- Logo -->
     <div class="hn-logo" @click="clickIndex">
       <span>次元馆</span>
@@ -29,24 +30,33 @@
       <i class="el-icon-bell hn-icon" @click="goMessage"></i>
       <i class="el-icon-message hn-icon" @click="goNotification"></i>
 
-      <span class="hn-item" @click="clickCollect">收藏</span>
-      <span class="hn-item" @click="clickHistory">历史</span>
-
-      <!-- 未登录 -->
-      <span v-if="!isLogin" class="hn-login" @click="clickLogin">登录</span>
-
-      <!-- 已登录 -->
-      <el-dropdown v-else class="hn-avatar-wrap" trigger="click">
+      <!-- 已登录：头像下拉 -->
+      <el-dropdown v-if="isLogin" class="hn-avatar-wrap" trigger="click">
         <img v-if="user.avatar" :src="user.avatar" class="hn-avatar"/>
         <div v-else class="hn-avatar-dummy">{{ user.nickname ? user.nickname[0] : 'U' }}</div>
-        <el-dropdown-menu slot="dropdown">
+         
+        <el-dropdown-menu slot="dropdown" class="hn-dropdown-menu">
+          <!-- 关注/粉丝 -->
+          <div class="hn-stats" @click.stop>
+            <div class="hn-stat-item" @click="goFollowing">
+              <span class="hn-stat-num">{{ user.followingCount || 0 }}</span>
+              <span class="hn-stat-label">关注</span>
+            </div>
+            <div class="hn-stat-item" @click="goFans">
+              <span class="hn-stat-num">{{ user.fansCount || 0 }}</span>
+              <span class="hn-stat-label">粉丝</span>
+            </div>
+          </div>
+
           <el-dropdown-item @click.native="clickUserCenter">个人中心</el-dropdown-item>
           <el-dropdown-item @click.native="clickCollect">我的收藏</el-dropdown-item>
           <el-dropdown-item @click.native="clickHistory">浏览历史</el-dropdown-item>
-          <el-divider></el-divider>
-          <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
+          <el-dropdown-item divided @click.native="logout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
+
+      <!-- 未登录：只保留这一个 -->
+      <span v-if="!isLogin" class="hn-login" @click="clickLogin">登录</span>
     </div>
 
     <!-- 登录/注册弹窗 -->
@@ -187,8 +197,17 @@ export default {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
       else this.$message.info('通知功能开发中')
     }
+    ,
+    goFollowing() {
+      // 因为只在 isLogin 时才显示，这里直接跳转即可
+      this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'followingTab' } })
+    },
+    goFans() {
+      this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'fansTab' } })
+    }
   }
 }
+
 </script>
 
 <style scoped src="./HeaderNav.css">
