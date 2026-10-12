@@ -1,2 +1,2 @@
 src文件夹下的main文件夹下的resource文件夹下的jdbc.properties文件中修改数据库的账号密码
-数据库图片存放的url是阿里云服务器的url
+数据库图片存放的url是本地mysql的url
