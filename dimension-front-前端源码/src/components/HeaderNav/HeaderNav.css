@@ -1,104 +1,87 @@
-.my-hover:hover {
-    color: aqua;
-    text-decoration: underline;
+.hn-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e6e6e6;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-.body-image2 {
-    transition: all 0.3s ease-out; /*设置过渡效果*/
+.hn-logo {
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.body-image2:hover {
-    transform: scale(1.05); /*鼠标移动到图片上时放大1.2倍*/
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+.hn-search {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+  margin: 0 30px;
 }
-.new-body {
-    background-color: #fff;
-    box-shadow: 0 105px 10px 0 rgba(0,0,0,0.3);
+.hn-search .el-input {
+  flex: 1;
 }
-.body{
-
-    /*background-color: #161615;*/
-    margin-top: 30px;
-    margin-bottom: 60px;
+.hn-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
 }
-.nav{
-    border-bottom: 1px solid pink;
-    height: 80px;
-    /*margin-top: 10px;*/
+.hn-item {
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap;
 }
-/*按钮总样式*/
-.collect,.history,.login-button{
-    width: 100px;
-    height: 30px;
-    background-color: #409eff;
-    border-radius: 5px;
-    text-align: center;
-    position: relative;
-    cursor: pointer;
-    padding-top: 8px;
+.hn-item:hover { color: #409EFF; }
+.hn-icon {
+  font-size: 18px;
+  color: #666;
+  cursor: pointer;
 }
-/*首页*/
-.index{
-    position: relative;
-    cursor: pointer;
-    padding-top: 8px;
-    float: left;
-    top: 10px;
-    left: 80px;
-    width: 150px;
-    height: 30px;
+.hn-icon:hover { color: #409EFF; }
+.hn-login {
+  color: #409EFF;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
 }
-.index p{
-    font-size: 50px;
+.hn-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
 }
-/*搜索框*/
-.search-input{
-    position: absolute;
-    left: 600px;
-    top: 65px;
-    float: left;
+.hn-avatar-dummy {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #409EFF;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}.hn-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  margin-right: 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
 }
-.search{
-    left: 230px;
-    position: absolute;
-    top: 0px;
+.hn-collapse-btn:hover {
+  background: #f0f0f0;
 }
-/*登录和头像的外框*/
-.login-button-or-user-image{
-    width: 200px;
-    height: 70px;
-    /*border: 1px solid black;*/
-    float: left;
-    position: absolute;
-    left: 1050px;
-}
-/*登录*/
-.login-button{
-    margin-top: 35px;
-}
-.collect{
-    float: left;
-    top: 35px;
-    left: 1050px;
-}
-/*历史*/
-.history{
-    float: left;
-    top: 35px;
-    left: 1100px;
-}
-.body {
-    height: 50px;
-    /*background-color: red;*/
-}
-.user-image img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-}
-.body-image {
-    transition: all 0.3s ease-out; /*设置过渡效果*/
-}
-.body-image:hover {
-    cursor: pointer;
-    transform: scale(1.2); /*鼠标移动到图片上时放大1.2倍*/
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+.hn-collapse-btn i {
+  font-size: 22px;
+  color: #555;
 }
