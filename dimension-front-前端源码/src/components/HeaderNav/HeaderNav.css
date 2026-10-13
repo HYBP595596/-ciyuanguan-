@@ -2,19 +2,22 @@
    HeaderNav.css - 完整版
    ======================================== */
 
-/* 顶部栏容器 */
+/* ========== 顶部栏容器：严格垂直居中 ========== */
 .hn-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  height: 64px;
+  flex-shrink: 0;
   padding: 0 24px;
-  background: #fff;
-  border-bottom: 1px solid #e6e6e6;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 4px var(--shadow-color);
+  line-height: normal;                  /* 清掉继承行高的干扰 */
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
-/* 折叠按钮 */
+/* ========== 折叠按钮 ========== */
 .hn-collapse-btn {
   display: flex;
   align-items: center;
@@ -28,26 +31,32 @@
   flex-shrink: 0;
 }
 .hn-collapse-btn:hover {
-  background: #f0f0f0;
+  background: var(--bg-hover);
 }
 .hn-collapse-btn i {
   font-size: 22px;
-  color: #555;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
-/* Logo */
+/* ========== Logo ========== */
 .hn-logo {
+  display: flex;
+  align-items: center;
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
-  color: #303133;
+  color: var(--text-primary);
+  line-height: 1;
 }
 .hn-logo:hover {
   color: #409EFF;
 }
 
-/* 搜索区 */
+/* ========== 搜索区 ========== */
 .hn-search {
   display: flex;
   align-items: center;
@@ -59,7 +68,7 @@
   flex: 1;
 }
 
-/* 右侧区域 */
+/* ========== 右侧区域 ========== */
 .hn-right {
   display: flex;
   align-items: center;
@@ -67,58 +76,65 @@
   flex-shrink: 0;
 }
 
-/* 普通文字链接 */
 .hn-item {
+  display: inline-flex;
+  align-items: center;
   font-size: 14px;
-  color: #555;
+  color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.2s;
+  line-height: 1;
 }
 .hn-item:hover {
   color: #409EFF;
 }
 
-/* 图标按钮 */
 .hn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: color 0.2s;
+  line-height: 1;
 }
 .hn-icon:hover {
   color: #409EFF;
 }
 
-/* 登录按钮 */
 .hn-login {
+  display: inline-flex;
+  align-items: center;
   color: #409EFF;
   font-weight: 500;
   cursor: pointer;
   font-size: 14px;
   transition: opacity 0.2s;
+  line-height: 1;
 }
 .hn-login:hover {
   opacity: 0.8;
 }
 
-/* 头像 */
+/* 头像（顶栏用 40px，居中更稳） */
 .hn-avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
   transition: opacity 0.2s;
+  display: block;
 }
 .hn-avatar:hover {
   opacity: 0.85;
 }
 
-/* 头像占位（无头像时用） */
 .hn-avatar-dummy {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #409EFF;
   color: #fff;
@@ -128,6 +144,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: opacity 0.2s;
+  line-height: 1;
 }
 .hn-avatar-dummy:hover {
   opacity: 0.85;
@@ -136,26 +153,22 @@
 /* ========================================
    关注/粉丝统计模块（下拉菜单内）
    ======================================== */
-
-/* 下拉菜单容器微调 */
 .hn-dropdown-menu {
   padding: 0 !important;
   min-width: 180px;
 }
 
-/* 统计块整体 */
 .hn-stats {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   padding: 14px 10px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #ebeef5;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
   cursor: default;
 }
 
-/* 单个统计项 */
 .hn-stat-item {
   display: flex;
   flex-direction: column;
@@ -169,24 +182,22 @@
   min-width: 52px;
 }
 .hn-stat-item:hover {
-  background: #ecf5ff;
+  background: var(--bg-active);
 }
 
-/* 数字 */
 .hn-stat-num {
   font-size: 18px;
   font-weight: 700;
-  color: #303133;
+  color: var(--text-primary);
   transition: color 0.2s;
 }
 .hn-stat-item:hover .hn-stat-num {
   color: #409EFF;
 }
 
-/* 标签文字 */
 .hn-stat-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-muted);
   margin-top: 2px;
   transition: color 0.2s;
 }
@@ -197,7 +208,6 @@
 /* ========================================
    Element UI 下拉菜单项微调
    ======================================== */
-
 .el-dropdown-menu__item {
   padding: 8px 20px;
   text-align: center;

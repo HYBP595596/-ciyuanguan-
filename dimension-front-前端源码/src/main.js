@@ -15,6 +15,9 @@ Vue.use(ElementUI);
 import request from '@/request/request'
 Vue.prototype.request = request
 
+import { initTheme } from '@/utils/theme'
+initTheme()
+
 new Vue({
   router,
   store,

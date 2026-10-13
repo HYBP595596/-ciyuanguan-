@@ -33,7 +33,7 @@ export default {
   components: { HeaderNav, SidebarNav },
   data() {
     return {
-      sidebarCollapsed: true,  // ✅ 默认收起
+      sidebarCollapsed: false,          // 默认展开侧栏
       isLogin: !!sessionStorage.getItem('token'),
       loginDialogVisible: false
     }
@@ -42,16 +42,29 @@ export default {
 </script>
 
 <style>
+/* ========== 整体骨架：100vh 撑满、页面级不滚动 ========== */
 .layout {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
+
+/* 顶栏以下区域：flex 自动分掉剩余高度 */
 .layout-body {
   display: flex;
-  height: calc(100vh - 60px);
+  flex: 1;
+  min-height: 0;          /* 关键：让内部 overflow 生效 */
+  overflow: hidden;
 }
+
+/* 主内容区：滚动只发生在这里 */
 .main-content {
   flex: 1;
+  min-width: 0;           /* 关键：防止内容撑破 flex 容器 */
   overflow-y: auto;
-  background: #f5f5f5;
+  overflow-x: hidden;
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 </style>

@@ -25,6 +25,14 @@
     <div class="hn-right">
       <span class="hn-item" @click="goPremium">Pixiv</span>
 
+      <!-- 主题切换 -->
+      <i
+        :class="isDark ? 'el-icon-sunny' : 'el-icon-moon-night'"
+        class="hn-icon"
+        @click="switchTheme"
+        :title="isDark ? '切换到白天模式' : '切换到黑夜模式'"
+      ></i>
+
       <el-button type="warning" size="mini" icon="el-icon-edit" @click="goPublish">发布</el-button>
 
       <i class="el-icon-bell hn-icon" @click="goMessage"></i>
@@ -34,9 +42,8 @@
       <el-dropdown v-if="isLogin" class="hn-avatar-wrap" trigger="click">
         <img v-if="user.avatar" :src="user.avatar" class="hn-avatar"/>
         <div v-else class="hn-avatar-dummy">{{ user.nickname ? user.nickname[0] : 'U' }}</div>
-         
+
         <el-dropdown-menu slot="dropdown" class="hn-dropdown-menu">
-          <!-- 关注/粉丝 -->
           <div class="hn-stats" @click.stop>
             <div class="hn-stat-item" @click="goFollowing">
               <span class="hn-stat-num">{{ user.followingCount || 0 }}</span>
@@ -55,7 +62,7 @@
         </el-dropdown-menu>
       </el-dropdown>
 
-      <!-- 未登录：只保留这一个 -->
+      <!-- 未登录 -->
       <span v-if="!isLogin" class="hn-login" @click="clickLogin">登录</span>
     </div>
 
@@ -84,6 +91,8 @@
 </template>
 
 <script>
+import { getTheme, toggleTheme } from '@/utils/theme'
+
 export default {
   name: "HeaderNav",
   props: {
@@ -109,6 +118,7 @@ export default {
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
         confirmPassword: [{ required: true, message: '请输入确认密码', trigger: 'blur' }]
       },
+      isDark: getTheme() === 'dark',
       isLogin: false,
       user: {}
     }
@@ -116,7 +126,7 @@ export default {
   mounted() {
     this.isLogin = !!sessionStorage.getItem('token')
     if (this.isLogin) {
-      try { this.user = JSON.parse(sessionStorage.getItem('user')) } catch(e) {}
+      try { this.user = JSON.parse(sessionStorage.getItem('user')) } catch (e) {}
     }
     if (this.event && this.event.$on) {
       this.event.$on('popLoginForm', () => { this.loginDialogVisible = true })
@@ -183,8 +193,8 @@ export default {
     },
     logout() { sessionStorage.clear(); location.reload() },
     goPremium() {
-  window.open('https://www.pixiv.net/', '_blank')
-},
+      window.open('https://www.pixiv.net/', '_blank')
+    },
     goPublish() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
       else this.$router.push('/image-management-add-image')
@@ -196,20 +206,20 @@ export default {
     goNotification() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
       else this.$message.info('通知功能开发中')
-    }
-    ,
+    },
     goFollowing() {
-      // 因为只在 isLogin 时才显示，这里直接跳转即可
       this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'followingTab' } })
     },
     goFans() {
       this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'fansTab' } })
+    },
+    switchTheme() {
+      const next = toggleTheme()
+      this.isDark = next === 'dark'
+      this.event && this.event.$emit('theme-change', next)
     }
   }
 }
-
 </script>
 
-<style scoped src="./HeaderNav.css">
-
-</style>
+<style scoped src="./HeaderNav.css"></style>
