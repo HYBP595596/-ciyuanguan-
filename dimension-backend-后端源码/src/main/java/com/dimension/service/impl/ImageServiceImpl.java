@@ -101,8 +101,7 @@ public class ImageServiceImpl implements ImageService {
         return imageTagList;
     }
 
-        // 在类里面注入 UserMapper
-    private UserMapper userMapper = SessionUtil.getMapper(UserMapper.class);
+      
 
     @Override
     public ImageTagTZP GetImageDetailById(long imageId) {

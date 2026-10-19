@@ -70,33 +70,31 @@ export default {
       this.$message.info('正在上传中，请稍等...')
     },
     // 保存，新增图片
-    save() {
-      if (this.imageUrl == '') {
-        this.$message.error('请上传图片')
-        return
-      }
-      this.addImageForm.url = this.imageUrl
-      this.request.post(`AddImage`, this.addImageForm).then(res => {
-        this.$message.success('新增成功')
-        // 继续新增还是跳到管理页
-        // this.$confirm('继续新增 or 回到图片管理页？', '提示', {
-        //   confirmButtonText: '回到首页',
-        //   cancelButtonText: '继续新增'
-        // }).then(() => {
-        //   // 回到首页
-        //   this.$router.push('image-management-image-management')
-        // }).catch(() => {
-        //   // 继续新增 - 清空数据
-        //   this.addImageForm.url = ''
-        //   this.addImageForm.categoryId = ''
-        //   this.addImageForm.tagIds = []
-        //   // 清空图片
-        //   this.imageUrl = ''
-        // })
-        this.imageUrl = ''
-        this.addImageForm = {url: '', categoryValueId: '', tagListValueIds: []}
-      })
-    },
+    // 保存，新增图片
+save() {
+  if (this.imageUrl == '') {
+    this.$message.error('请上传图片')
+    return
+  }
+  this.addImageForm.url = this.imageUrl
+  
+  // 👇 新增：从 sessionStorage 拿到当前登录用户，把 id 塞进表单
+  const userStr = sessionStorage.getItem('user')
+  if (!userStr) {
+    this.$message.error('请先登录')
+    return
+  }
+  const user = JSON.parse(userStr)
+  this.addImageForm.userId = user.id 
+  // 👆
+
+  this.request.post(`AddImage`, this.addImageForm).then(res => {
+    this.$message.success('新增成功')
+    this.imageUrl = ''
+    // 提交完之后记得把 userId 也重置清空
+    this.addImageForm = {url: '', categoryValueId: '', tagListValueIds: [], userId: ''} 
+  })
+},
     // 上传文件成功
     handleAvatarSuccess(res) {
       console.log('image', res)

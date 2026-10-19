@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.FollowMapper">
+    <select id="checkIsFollowing" resultType="int">
+        select count(*) from dimension_follow where user_id = #{userId} and followed_user_id = #{followedUserId}
+    </select>
+
+    <insert id="insertFollow">
+        insert into dimension_follow(user_id, followed_user_id, create_time) values(#{userId}, #{followedUserId}, NOW())
+    </insert>
+
+    <delete id="deleteFollow">
+        delete from dimension_follow where user_id = #{userId} and followed_user_id = #{followedUserId}
+    </delete>
+
+    <select id="getFansCount" resultType="int">
+        select count(*) from dimension_follow where followed_user_id = #{followedUserId}
+    </select>
+</mapper>

@@ -187,6 +187,17 @@ export default {
     this.imageViewIncrement()
   },
   methods: {
+        // 检查关注状态
+    checkFollowStatus() {
+      if (!this.isLogin || !this.imageTag.user) return
+      // 不能查自己关注自己
+      if (this.user.id === this.imageTag.user.id) return
+
+      this.request.get(`CheckFollowStatus?userId=${this.user.id}&targetUserId=${this.imageTag.user.id}`).then(res => {
+        this.isFollowingAuthor = res.isFollowing
+        this.imageTag.fansCount = res.fansCount // 顺便更新粉丝数
+      })
+    },
     beforeCommentDialogClose() {
       this.$refs['commentForm'].resetFields()
       this.commentDialogVisible = false
@@ -223,21 +234,28 @@ clickUserCenter(authorId) {
   this.$message.info('查看用户 ' + authorId + ' 的主页功能开发中');
 },
 
-// 关注 / 取关切换
-toggleFollowAuthor() {
-  if (!this.isLogin) {
-    this.$message.warning('请先登录');
-    this.event.$emit('popLoginForm');
-    return;
-  }
-  
-  // ⚠️ 这里需要后端提供 FollowUser 接口
-  // this.request.post(`FollowUser?userId=${this.user.id}&targetUserId=${this.imageTag.user.id}`).then(...)
-  
-  // 目前前端先做纯 UI 切换演示：
-  this.isFollowingAuthor = !this.isFollowingAuthor;
-  this.$message.success(this.isFollowingAuthor ? '关注成功' : '已取消关注');
-},
+    toggleFollowAuthor() {
+      if (!this.isLogin) {
+        this.$message.warning('请先登录');
+        this.event.$emit('popLoginForm');
+        return;
+      }
+
+      const url = this.isFollowingAuthor ? 'UnfollowUser' : 'FollowUser';
+      
+      this.request.post(`${url}?userId=${this.user.id}&targetUserId=${this.imageTag.user.id}`).then(() => {
+        this.isFollowingAuthor = !this.isFollowingAuthor;
+        
+        // 动态更新粉丝数显示
+        if (this.isFollowingAuthor) {
+          this.imageTag.fansCount = (this.imageTag.fansCount || 0) + 1;
+          this.$message.success('关注成功');
+        } else {
+          this.imageTag.fansCount = Math.max(0, (this.imageTag.fansCount || 0) - 1);
+          this.$message.success('已取消关注');
+        }
+      })
+    },
 
     clickComment() {
       if (!this.isLogin) {
@@ -390,6 +408,7 @@ toggleFollowAuthor() {
         this.imageTag = res.imageTag
         this.getCommentList()
         this.getRecommendImageList()
+        this.checkFollowStatus() // 👈 新增这一行：拿到详情后立刻查关注状态
       })
     },
 
