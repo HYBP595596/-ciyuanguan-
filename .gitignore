@@ -1,3 +1,16 @@
-target/
+# IDEA配置
 .idea/
 *.iml
+*.ipr
+*.iws
+
+# Maven编译产物
+target/
+target/*
+
+# VS Code配置
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db
