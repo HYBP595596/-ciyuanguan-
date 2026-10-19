@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.CommentMapper">
+
+    <resultMap id="getCommentUser" type="com.dimension.vo.CommentUser">
+        <association property="comment" javaType="com.dimension.entity.Comment">
+            <id property="id" column="di_id"></id>
+            <result property="userId" column="di_user_id"></result>
+            <result property="imageId" column="di_image_id"></result>
+            <result property="content" column="di_content"></result>
+            <result property="createTime" column="di_create_time"></result>
+        </association>
+        <association property="user" javaType="com.dimension.entity.User">
+            <id property="id" column="dic_id"></id>
+            <result property="nickname" column="dic_nickname"></result>
+            <result property="password" column="dic_password"></result>
+            <result property="description" column="dic_description"></result>
+            <result property="status" column="dic_status"></result>
+            <result property="birthday" column="dic_birthday"></result>
+            <result property="avatar" column="dic_avatar"></result>
+            <result property="username" column="dic_username"></result>
+            <result property="sex" column="dic_sex"></result>
+        </association>
+    </resultMap>
+    <resultMap id="getCommentUserImage" type="com.dimension.vo.CommentUserImage">
+        <association property="comment" javaType="com.dimension.entity.Comment">
+            <id property="id" column="di_id"></id>
+            <result property="userId" column="di_user_id"></result>
+            <result property="imageId" column="di_image_id"></result>
+            <result property="content" column="di_content"></result>
+            <result property="createTime" column="di_create_time"></result>
+        </association>
+        <association property="user" javaType="com.dimension.entity.User">
+            <id property="id" column="dic_id"></id>
+            <result property="nickname" column="dic_nickname"></result>
+            <result property="password" column="dic_password"></result>
+            <result property="description" column="dic_description"></result>
+            <result property="status" column="dic_status"></result>
+            <result property="birthday" column="dic_birthday"></result>
+            <result property="avatar" column="dic_avatar"></result>
+            <result property="username" column="dic_username"></result>
+            <result property="sex" column="dic_sex"></result>
+        </association>
+        <association property="image" javaType="com.dimension.entity.Image">
+            <id property="id" column="dii_id"></id>
+            <result property="categoryId" column="dii_category_id"></result>
+            <result property="url" column="dii_url"></result>
+            <result property="score" column="dii_score"></result>
+            <result property="collects" column="dii_collects"></result>
+            <result property="createTime" column="dii_create_time"></result>
+            <result property="comments" column="dii_comments"></result>
+            <result property="votes" column="dii_votes,"></result>
+            <result property="views" column="dii_views"></result>
+        </association>
+    </resultMap>
+    <insert id="addCommentImage">
+        insert into dimension_comment(content,image_id,user_id,create_time)values (#{content},#{imageId},#{userId},NOW())
+    </insert>
+
+    <delete id="removeComment">
+        delete from dimension_comment where  id=#{commentid}
+    </delete>
+
+    <select id="getCommentUser" resultType="com.dimension.vo.CommentUser" resultMap="getCommentUser">
+        SELECT di.id di_id,di.user_id di_user_id,di.image_id di_image_id,di.content di_content,di.create_time di_create_time,
+               dic.id dis_id,dic.nickname dic_nickname,dic.`password` dic_password,dic.description dic_description,dic.`status` dic_status,dic.sex dic_sex,
+               dic.birthday dic_birthday,dic.avatar dic_avatar,dic.username dic_username
+        FROM dimension_comment  di INNER JOIN
+             dimension_user dic on  di.user_id=dic.id WHERE di.image_id=#{imageId} ORDER BY di.create_time desc limit #{pageNum},#{pageSize}
+    </select>
+
+    <select id="getCommentUserImage" resultType="com.dimension.vo.CommentUserImage" resultMap="getCommentUserImage">
+        SELECT di.id di_id,di.user_id di_user_id,di.image_id di_image_id,di.content di_content,di.create_time di_create_time,
+               dic.id dis_id,dic.nickname dic_nickname,dic.`password` dic_password,dic.description dic_description,dic.`status` dic_status,dic.sex dic_sex,
+               dic.birthday dic_birthday,dic.avatar dic_avatar,dic.username dic_username,
+               dii.id dii_id,dii.category_id dii_category_id,dii.url dii_url,dii.score dii_score,dii.collects dii_collects,
+               dii.create_time dii_create_time,dii.comments dii_comments,dii.votes dii_votes,dii.views dii_views
+        FROM dimension_comment  di
+                 INNER JOIN dimension_user dic on  di.user_id=dic.id
+                 INNER JOIN dimension_image dii on di.image_id=dii.id ORDER BY di.create_time desc limit #{pageNum},#{pageSize}
+    </select>
+
+    <resultMap id="getCommentTableWithCondition" type="com.dimension.vo.CommentUserImage">
+        <association property="comment" javaType="com.dimension.entity.Comment">
+            <id property="id" column="dt_id"></id>
+            <result property="userId" column="dt_user_id"></result>
+            <result property="imageId" column="dt_image_id"></result>
+            <result property="content" column="dt_content"></result>
+            <result property="createTime" column="dt_create_time"></result>
+        </association>
+        <association property="user" javaType="com.dimension.entity.User">
+            <id property="id" column="dtir_id"></id>
+            <result property="nickname" column="dtir_nickname"></result>
+            <result property="password" column="dtir_password"></result>
+            <result property="description" column="dtir_description"></result>
+            <result property="status" column="dtir_status"></result>
+            <result property="sex" column="dtir_sex"></result>
+            <result property="birthday" column="dtir_birthday"></result>
+            <result property="avatar" column="dtir_avatar"></result>
+            <result property="username" column="dtir_username"></result>
+        </association>
+        <association property="image" javaType="com.dimension.entity.Image">
+            <id property="id" column="dwh_id"></id>
+            <result property="categoryId" column="dwh_category_id"></result>
+            <result property="url" column="dwh_url"></result>
+            <result property="score" column="dwh_score"></result>
+            <result property="collects" column="dwh_collects"></result>
+            <result property="createTime" column="dwh_create_time"></result>
+            <result property="comments" column="dwh_comments"></result>
+            <result property="votes" column="dwh_votes"></result>
+            <result property="views" column="dwh_views"></result>
+        </association>
+    </resultMap>
+
+    <select id="getCommentTableWithCondition" resultType="com.dimension.vo.CommentUserImage" resultMap="getCommentTableWithCondition">
+        SELECT dt.id dt_id,dt.user_id dt_user_id,dt.image_id dt_image_id,dt.content dt_content,dt.create_time dt_create_time,
+               dtir.id dtir_id,dtir.nickname dtir_nickname,dtir.password dtir_password,dtir.description dtir_description,dtir.status dtir_status,
+               dtir.sex dtir_sex,dtir.birthday dtir_birthday,dtir.avatar dtir_avatar,dtir.username dtir_username,dwh.id dwh_id,
+               dwh.category_id dwh_category_id,dwh.url dwh_url,dwh.score dwh_score,dwh.collects dwh_collects,dwh.create_time dwh_create_time,
+               dwh.comments dwh_comments,dwh.votes dwh_votes,dwh.views dwh_views
+        FROM dimension_comment dt INNER JOIN dimension_user dtir ON dt.user_id = dtir.id
+                                  INNER JOIN dimension_image dwh ON dt.image_id = dwh.id
+        WHERE nickname LIKE concat('%', #{nickname}, '%') LIMIT #{pageNum},#{pageSize}
+    </select>
+
+    <select id="gettotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_comment dt INNER JOIN dimension_user dtir ON dt.user_id = dtir.id
+        WHERE nickname LIKE concat('%', #{nickname}, '%')
+    </select>
+
+    <select id="getCommentListTotal" resultType="java.lang.Long">
+        select count(*) from dimension_comment where image_id = #{imageId};
+    </select>
+
+    <select id="getTotalWithNoCondition" resultType="java.lang.Long">
+        select count(*) from dimension_comment;
+    </select>
+
+</mapper>

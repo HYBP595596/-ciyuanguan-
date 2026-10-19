@@ -1,0 +1,24 @@
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* 搜索功能 */
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 40px 0 30px 24px;
+}
+.nickname,
+.username {
+    width: 220px;
+}
+
+/* 分页器 */
+.pagination {
+    text-align: center;
+    margin-top: 2%;
+}

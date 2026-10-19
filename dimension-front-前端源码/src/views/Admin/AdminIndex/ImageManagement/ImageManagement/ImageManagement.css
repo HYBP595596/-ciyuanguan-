@@ -1,0 +1,28 @@
+/* 搜索框 + 新增按钮 */
+.search-input-and-add-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px 24px 30px;
+}
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 380px;
+}
+.search-input .placeholder {
+    flex: 1;
+}
+
+.image-image {
+    width: 200px;
+    object-fit: cover;
+}
+
+/* 分页器 */
+.pagination {
+    text-align: center;
+    margin-top: 2%;
+}

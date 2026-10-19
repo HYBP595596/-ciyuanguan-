@@ -1,0 +1,277 @@
+/* ========================================
+   HeaderNav.css - 完整版
+   ======================================== */
+
+/* ========== 顶部栏容器：严格垂直居中 ========== */
+.hn-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  flex-shrink: 0;
+  padding: 0 24px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 4px var(--shadow-color);
+  line-height: normal;                  /* 清掉继承行高的干扰 */
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ========== 折叠按钮 ========== */
+.hn-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  margin-right: 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.hn-collapse-btn:hover {
+  background: var(--bg-hover);
+}
+.hn-collapse-btn i {
+  font-size: 22px;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ========== Logo ========== */
+.hn-logo {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.hn-logo:hover {
+  color: #409EFF;
+}
+
+/* ========== 搜索区 ========== */
+.hn-search {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+  margin: 0 30px;
+}
+.hn-search .el-input {
+  flex: 1;
+}
+
+/* ========== 右侧区域 ========== */
+.hn-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.hn-item {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s;
+  line-height: 1;
+}
+.hn-item:hover {
+  color: #409EFF;
+}
+
+.hn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+.hn-icon:hover {
+  color: #409EFF;
+}
+
+.hn-login {
+  display: inline-flex;
+  align-items: center;
+  color: #409EFF;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+  line-height: 1;
+}
+.hn-login:hover {
+  opacity: 0.8;
+}
+
+/* 头像（顶栏用 40px，居中更稳） */
+.hn-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: block;
+}
+.hn-avatar:hover {
+  opacity: 0.85;
+}
+
+.hn-avatar-dummy {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #409EFF;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+  line-height: 1;
+}
+.hn-avatar-dummy:hover {
+  opacity: 0.85;
+}
+
+/* ========================================
+   关注/粉丝统计模块（下拉菜单内）
+   ======================================== */
+.hn-dropdown-menu {
+  padding: 0 !important;
+  min-width: 180px;
+}
+
+.hn-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 10px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+  cursor: default;
+}
+
+.hn-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  min-width: 52px;
+}
+.hn-stat-item:hover {
+  background: var(--bg-active);
+}
+
+.hn-stat-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: color 0.2s;
+}
+.hn-stat-item:hover .hn-stat-num {
+  color: #409EFF;
+}
+
+.hn-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  transition: color 0.2s;
+}
+.hn-stat-item:hover .hn-stat-label {
+  color: #409EFF;
+}
+
+/* ========================================
+   Element UI 下拉菜单项微调
+   ======================================== */
+.el-dropdown-menu__item {
+  padding: 8px 20px;
+  text-align: center;
+}
+/* 增加：更稳的顶部栏垂直居中（避免任何元素跑偏） */
+.hn-bar > * {
+  display: flex;
+  align-items: center;
+}
+
+/* 头像包裹元素也居中 */
+.hn-avatar-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+
+/* 顶部图标按钮点击反馈 */
+.hn-icon:active { transform: scale(.9); }
+
+/* 顶部栏细分隔 */
+.hn-right > *:not(:last-child) {
+  /* 保持 gap 即可，无需额外 margin */
+}
+/* ================= 深色主题下的搜索框 ================= */
+.hn-search .el-input__inner {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  transition: background-color .25s ease, border-color .25s ease, color .25s ease;
+}
+
+/* placeholder 颜色也跟着走 */
+.hn-search .el-input__inner::placeholder {
+  color: var(--text-muted);
+}
+
+/* 聚焦时：让边框和光晕用 Pixiv 蓝，深色下更亮眼 */
+.hn-search .el-input__inner:focus {
+  border-color: #0096fa;
+  background-color: var(--bg-card);
+  box-shadow: 0 0 0 2px rgba(0, 150, 250, .18);
+}
+
+/* 搜索按钮微调：让蓝底在深色下不过分刺眼 */
+.hn-search .el-button--primary {
+  transition: filter .2s ease, box-shadow .2s ease;
+}
+.hn-search .el-button--primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 12px rgba(0, 150, 250, .45);
+}
+/* 放在 HeaderNav.vue 的 <style scoped> 里 */
+::v-deep .hn-search .el-input__inner {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+::v-deep .hn-search .el-input__inner::placeholder {
+  color: var(--text-muted);
+}
+::v-deep .hn-search .el-input__inner:focus {
+  border-color: #0096fa;
+  background-color: var(--bg-card);
+  box-shadow: 0 0 0 2px rgba(0, 150, 250, .18);
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.ImageBookmarkMapper">
+
+    <resultMap id="getUserImageBookmarkList" type="com.dimension.vo.ImageBookmarkList">
+        <association property="image" javaType="com.dimension.entity.Image">
+            <id property="id" column="di_id"></id>
+            <result property="categoryId" column="di_category_id"></result>
+            <result property="url" column="di_url"></result>
+            <result property="score" column="di_score"></result>
+            <result property="collects" column="di_collects"></result>
+            <result property="createTime" column="di_create_time"></result>
+            <result property="comments" column="di_comments"></result>
+            <result property="votes" column="di_votes"></result>
+            <result property="views" column="di_views"></result>
+        </association>
+
+        <association property="imageBookmark" javaType="com.dimension.entity.ImageBookmark">
+            <id property="id" column="dwh_id"></id>
+            <result property="userId" column="dwh_user_id"></result>
+            <result property="imageId" column="dwh_image_id"></result>
+            <result property="createTime" column="dwh_create_time"></result>
+        </association>
+    </resultMap>
+
+    <update id="imageBookmarkIncrement">
+        update dimension_image set collects = collects + 1 where id = #{imageId};
+    </update>
+
+    <update id="imageBookmarkDecrement">
+        update dimension_image set collects = collects - 1 where id = #{imageId};
+    </update>
+
+    <select id="getUserImageBookmarkList" resultType="com.dimension.vo.ImageBookmarkList" resultMap="getUserImageBookmarkList">
+        SELECT
+            di.id di_id, di.category_id di_category_id, di.url di_url, di.score di_score, di.collects di_collects,
+            di.create_time di_create_time,di.comments di_comments, di.votes di_votes, di.views di_views,
+            dwh.id dwh_id,dwh.user_id dwh_user_id,dwh.image_id dwh_image_id, dwh.create_time dwh_create_time
+        FROM dimension_image di INNER JOIN dimension_image_bookmark dwh ON di.id = dwh.image_id
+        WHERE dwh.user_id = #{userId} ORDER BY dwh.create_time DESC LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getTagList" resultType="com.dimension.entity.Tag">
+        select dt.* from dimension_tag dt inner join dimension_tag_image_relation dtir on dt.id = dtir.tag_id
+        where dtir.image_id = #{categoryId};
+    </select>
+
+    <select id="getCounttotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_image_bookmark WHERE user_id = #{userId}
+    </select>
+
+    <select id="getimageBookmark" resultType="com.dimension.entity.ImageBookmark">
+        select * from dimension_image_bookmark where user_id = #{userId} and image_id = #{imageId}
+    </select>
+
+    <select id="deleteImageBookmark" resultType="com.dimension.entity.ImageBookmark">
+        delete from dimension_image_bookmark where user_id = #{userId} and image_id = #{imageId}
+    </select>
+
+    <select id="insertImageBookmark">
+        insert into dimension_image_bookmark(create_time,user_id,image_id)
+            value ( NOW(), #{userId}, #{imageId} )
+    </select>
+
+</mapper>

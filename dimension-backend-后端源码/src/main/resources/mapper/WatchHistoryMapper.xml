@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.WatchHistoryMapper">
+    <resultMap id="getUserWatchHistory" type="com.dimension.vo.ImageHistoryCategory">
+        <association property="image" javaType="com.dimension.entity.Image">
+            <id property="id" column="di_id"></id>
+            <result property="createTime" column="di_create_time"></result>
+            <result property="collects" column="di_collects"></result>
+            <result property="comments" column="di_comments"></result>
+            <result property="views" column="di_views"></result>
+            <result property="score" column="di_score"></result>
+            <result property="url" column="di_url"></result>
+            <result property="categoryId" column="di_category_id"></result>
+            <result property="votes" column="di_votes"></result>
+        </association>
+        <association property="watchHistory" javaType="com.dimension.entity.WatchHistory">
+            <id property="id" column="dwh_id"></id>
+            <result property="createTime" column="dwh_create_time"></result>
+            <result property="imageId" column="dwh_image_id"></result>
+            <result property="userId" column="dwh_image_id"></result>
+        </association>
+        <association property="category" javaType="com.dimension.entity.ImageCategory">
+            <id property="id" column="dic_id"></id>
+            <result property="count" column="dic_count"></result>
+            <result property="name" column="dic_name"></result>
+            <result property="sort" column="dic_sort"></result>
+        </association>
+    </resultMap>
+
+    <insert id="addImageWatchHistory">
+        INSERT INTO dimension_watch_history(creat_time,image_id,user_id)
+        VALUES (NOW(), #{image_id}, #{user_id})
+    </insert>
+
+    <select id="getUserWatchHistory" resultType="com.dimension.vo.ImageHistoryCategory" resultMap="getUserWatchHistory">
+        select
+            di.id di_id, di.votes di_votes, di.views di_views, di.comments di_comments, di.collects di_collects,
+            di.url di_url, di.category_id di_category_id, di.create_time di_create_time, di.score di_score,
+            dic.id dic_id, dic.name dic_name, dic.count dic_count, dic.sort dic_sort,
+            dwh.id dwh_id, dwh.creat_time dwh_create_time, dwh.user_id dwh_user_id, dwh.image_id dwh_image_id
+        from dimension_image di inner join dimension_image_category dic on di.category_id = dic.id
+                                inner join dimension_watch_history dwh on di.id = dwh.image_id
+        where dwh.user_id = #{user_id} order by dwh.creat_time desc limit #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getTagList" resultType="com.dimension.entity.Tag">
+        select dt.* from dimension_tag dt inner join dimension_tag_image_relation dtir on dt.id = dtir.tag_id
+        where dtir.image_id = #{id}
+    </select>
+
+    <select id="getTotal" resultType="java.lang.Long">
+        select count(*) from dimension_watch_history where user_id = #{userid};
+    </select>
+
+    <delete id="removeWatchHistoryById">
+        delete from dimension_watch_history where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.ImageMapper">
+    <insert id="insertImageTagRelationByImageId">
+        insert into dimension_tag_image_relation (tag_id, image_id)
+        values(#{tagId}, #{imageId})
+    </insert>
+
+    <insert id="insertImage" parameterType="com.dimension.entity.Image">
+        <selectKey  resultType="java.lang.Long" order="AFTER" keyProperty="id">
+            select last_insert_id()
+        </selectKey>
+        insert into dimension_image (category_id, url, score,
+        collects, create_time, comments,
+        votes, views)
+        values (#{categoryId}, #{url}, #{score},
+        #{collects}, #{createTime}, #{comments},
+        #{votes}, #{views})
+    </insert>
+
+
+    <delete id="removeImageById">
+        delete from dimension_image
+        where id = #{imageId}
+    </delete>
+
+    <delete id="removeCommentByImageId">
+        delete from dimension_comment
+        where image_id = #{imageId}
+    </delete>
+
+    <delete id="removeBookmarkByImageId">
+        delete from dimension_image_bookmark
+        where image_id = #{imageId}
+    </delete>
+
+    <delete id="removeImageRatingByImageId">
+        delete from dimension_image_rating
+        where image_id = #{imageId}
+    </delete>
+
+
+    <delete id="removeImageTagsRelationByImageId">
+        delete from dimension_tag_image_relation
+        where image_id = #{imageId}
+    </delete>
+
+    <delete id="removeWatchHistoryByImageId">
+        delete from dimension_watch_history
+        where image_id = #{imageId}
+    </delete>
+
+
+    <select id="getTotalWithoutCondition" resultType="java.lang.Long">
+        select count(*) from dimension_image
+    </select>
+
+
+
+    <select id="getTagListWithCondition" resultType="com.dimension.entity.Tag">
+        select dt.* from dimension_tag dt
+                             inner join dimension_tag_image_relation dtir on dt.id = dtir.tag_id
+        where dtir.image_id = #{id} 
+    </select>
+
+
+    <select id="getImageListWithoutCondition" resultType="com.dimension.entity.Image">
+        select * from dimension_image order by create_time desc limit #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getImageCategoryByImageId" resultType="com.dimension.entity.ImageCategory">
+        select dic.* from dimension_image_category dic
+                              inner join dimension_image di on dic.id = di.category_id
+        where di.id = #{imageId}
+    </select>
+
+    <select id="getImageListByKeyword" resultType="com.dimension.entity.Image">
+        select distinct di.* from dimension_tag_image_relation dtir
+                                      inner join dimension_image di on dtir.image_id = di.id
+                                      inner join dimension_tag dt on dtir.tag_id = dt.id
+        where dt.name like #{keyword} limit #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getTotalByKeyword" resultType="java.lang.Long">
+        select count(distinct dtir.image_id) from dimension_tag_image_relation dtir
+                                                      inner join dimension_tag dt on dtir.tag_id = dt.id
+        where dt.name like #{keyword}
+    </select>
+
+    <update id="decreaseImageVotesByImageId">
+        update dimension_image
+        set votes = votes - 1
+        where id = #{imageId}
+    </update>
+
+    <update id="increaseImageCommentsByImageId">
+        update dimension_image
+        set comments = comments + 1
+        where id = #{imageId}
+    </update>
+
+
+    <update id="updateImageCategoryByImageId">
+        update dimension_image
+        set category_id = #{categoryId}
+        where id = #{imageId}
+    </update>
+
+    <update id="increaseCategoryCount">
+        update dimension_image_category
+        set count = count + 1
+        where id = #{categoryId}
+    </update>
+
+    <update id="updateImageScore">
+        update dimension_image
+        set score = #{score}
+        where id = #{imageId}
+    </update>
+
+    <!--根据图片id来将图片评论数减一 -->
+    <update id="imageCommentsDecrement">
+        update dimension_image set comments = comments - 1 where id = #{imageId}
+    </update>
+
+    <!--    3.2 /GetImageListWithNoCondition => 无条件获取图片列表-->
+    <select id="getImageListWithNoCondition" resultType="com.dimension.entity.Image">
+        select * from dimension_image order by score desc limit #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getTagListWithNoCondition" resultType="com.dimension.entity.Tag">
+        select dt.* from dimension_tag dt inner join dimension_tag_image_relation dtir on dt.id = dtir.tag_id
+        where dtir.image_id = #{id}
+    </select>
+
+    <select id="getTotalWithNoCondition" resultType="java.lang.Long">
+        select count(*) from dimension_image
+    </select>
+
+    <!--    3.1 /GetImageListWithCondition => 根据关键字获取图片列表-->
+    <select id="getImageListWithCondition" resultType="com.dimension.entity.Image">
+        SELECT di.*
+        FROM dimension_image di
+                 INNER JOIN dimension_tag_image_relation dtir ON di.id = dtir.image_id
+                 INNER JOIN dimension_tag dt ON dtir.tag_id = dt.id
+        WHERE dt.name LIKE CONCAT('%',#{keyword}, '%')
+        ORDER BY di.score DESC
+            LIMIT #{pageNum},#{pageSize}
+
+    </select>
+
+<!--    <select id="getTagListWithCondition" resultType="com.dimension.entity.Tag">-->
+<!--        select dt.* from dimension_tag dt inner join dimension_tag_image_relation dtir on dt.id = dtir.tag_id-->
+<!--        where dtir.image_id = #{id} -->
+<!--    </select>-->
+
+    <select id="getTotalWithCondition" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM dimension_tag dt
+                 INNER JOIN dimension_tag_image_relation dtir ON dt.id = dtir.tag_id
+        WHERE dt.name LIKE CONCAT('%',#{keyword}, '%')
+
+    </select>
+    <!--    3.3 /GetImageListWithCategoryId => 获取某分类下的图片列表-->
+    <select id="getImageListWithCategoryId" resultType="com.dimension.entity.Image">
+        SELECT *
+        FROM dimension_image
+        WHERE category_id = #{categoryId}
+        ORDER BY score DESC
+            LIMIT #{pageNum}, #{pageSize}
+
+    </select>
+
+    <select id="getTagListWithCategoryId" resultType="com.dimension.entity.Tag">
+        SELECT dt.*
+        FROM dimension_tag dt
+                 INNER JOIN dimension_tag_image_relation dtir ON dt.id = dtir.tag_id
+        WHERE dtir.image_id = #{id}
+    </select>
+
+    <!--    3.4 /GetImageDetail => 获取图片详情信息-->
+    <select id="getImageById" resultType="com.dimension.entity.Image">
+        SELECT * FROM dimension_image WHERE id = #{imageId}
+    </select>
+
+    <select id="getTagListByImageId" resultType="com.dimension.entity.Tag">
+        SELECT dt.*
+        FROM dimension_tag dt
+                 INNER JOIN dimension_tag_image_relation dtir ON dt.id = dtir.tag_id
+        WHERE dtir.image_id = #{id}
+    </select>
+    <!--    3.5 /GetRecommendImageList => 获取推荐图片列表-->
+    <select id="getRecommendImageList" resultType="com.dimension.entity.Image">
+        SELECT di.id, di.category_id, di.url, di.score, di.collects, di.create_time, di.comments, di.votes, di.views, dic.name AS category_name
+        FROM dimension_image di
+                 JOIN dimension_image_category dic ON di.category_id = dic.id
+        WHERE di.category_id = #{categoryId}
+                and di.id != #{imageId}
+        ORDER BY RAND()
+            LIMIT 5
+    </select>
+
+    <select id="getRecommendTagListByImageId" resultType="com.dimension.entity.Tag">
+        SELECT dt.*
+        FROM dimension_tag dt
+                 INNER JOIN dimension_tag_image_relation dtir ON dt.id = dtir.tag_id
+        WHERE dtir.image_id = #{id}
+    </select>
+
+    <!--    3.6 /ImageViewsIncrement => 图片浏览数+1-->
+    <update id="increaseImageViewsIncrement">
+        UPDATE dimension_image
+        SET views = views + 1
+        WHERE id = #{imageId}
+    </update>
+    <!--    3.7 /ImageVotesIncrement => 图片投票数+1-->
+    <update id="increaseImageVotesIncrement">
+
+        UPDATE dimension_image
+        SET votes = votes + 1
+        WHERE id = #{imageId}
+    </update>
+
+    <update id="categoryCountDecrement">
+        update dimension_image_category set count = count - 1 where id = #{categoryId}
+    </update>
+</mapper>

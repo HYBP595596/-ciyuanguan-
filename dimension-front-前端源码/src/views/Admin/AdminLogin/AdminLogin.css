@@ -1,0 +1,23 @@
+/*.title{*/
+/*    margin: 150px 680px 10px;*/
+/*}*/
+/*.login-card{*/
+/*    width: 500px;*/
+/*    margin-left: 500px;*/
+/*}*/
+/*.login-form{*/
+/*    margin-top: 20px;*/
+/*}*/
+/*.name,.pwd{*/
+/*    width: 300px;*/
+/*}*/
+.login-button{
+    /*margin-left: 200px;*/
+}
+.body {
+    height: 100vh;
+    background-image: url("@/static/image/default-banner.jpg");
+    background-size: 100% 100%;
+    background-attachment: fixed;
+    /*margin: auto;*/
+}

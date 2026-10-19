@@ -1,0 +1,207 @@
+/* ================= 页面骨架 ================= */
+.uc-page {
+  min-height: 100%;
+  padding: 24px 32px 48px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ================= 顶部用户信息：垂直居中 ================= */
+.uc-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 160px;
+  padding: 0 32px;
+  border-radius: 14px;
+  overflow: hidden;
+  background-image: url("@/static/image/user-center-background.jpg");
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+.user-avatar {
+  flex-shrink: 0;
+}
+.user-avatar img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, .8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+}
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.user-nickname {
+  color: #fff;
+  font-weight: 700;
+  font-size: 20px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+.user-description {
+  color: rgba(255, 255, 255, .9);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 600px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+}
+
+/* ================= 标签页容器 ================= */
+.uc-body {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px var(--shadow-color);
+  min-height: 400px;
+}
+
+/* 个人信息页 */
+.info-pane {
+  max-width: 480px;
+  margin: 24px auto 0;
+}
+
+/* ================= 网格列表（收藏 / 历史公用） ================= */
+.grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 22px;
+  margin-top: 20px;
+}
+
+.grid-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.grid-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.grid-image {
+  width: 100%;
+  aspect-ratio: 300 / 200;
+  overflow: hidden;
+  background: var(--bg-hover);
+  cursor: pointer;
+}
+.grid-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .4s ease;
+}
+.grid-card:hover .grid-image img { transform: scale(1.06); }
+
+.grid-time {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.grid-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 6px 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.grid-stats i { color: var(--text-muted); font-size: 14px; }
+.grid-stats i:not(:first-child) { margin-left: 10px; }
+
+.grid-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px 8px;
+  min-height: 36px;
+}
+
+.grid-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.collect-time { font-size: 12px; }
+
+.delete-btn {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  transition: color .2s, background .2s;
+  user-select: none;
+}
+.delete-btn:hover {
+  color: #f56c6c;
+  background: rgba(245, 108, 108, .1);
+}
+
+/* ================= 分页器 ================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0 12px;
+}
+
+/* ================= 修改头像面板 ================= */
+.avatar-update {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  padding: 40px 20px;
+}
+.avatar-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+  min-width: 180px;
+  padding-right: 40px;
+  border-right: 1px solid var(--border-color);
+}
+.avatar-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-preview img {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-color);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.avatar-preview img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px var(--shadow-color);
+}
+
+/* ================= 修改信息 / 修改密码表单 ================= */
+.update-form {
+  max-width: 480px;
+  margin: 20px auto;
+}

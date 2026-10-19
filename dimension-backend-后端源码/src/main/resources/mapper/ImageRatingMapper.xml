@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.ImageRatingMapper">
+
+    <!-- 查询一个评分记录 -->
+    <select id="getUserRate" resultType="com.dimension.entity.ImageRating">
+        select * from dimension_image_rating where user_id = #{userId} and image_id = #{imageId}
+    </select>
+
+    <!-- 添加一个好评记录-->
+    <insert id="setLike">
+        insert into dimension_image_rating(user_id,image_id,dimension_image_rating.like)values(#{userId},#{imageId},0)
+    </insert>
+
+    <!-- 修改为非好评-->
+    <update id="setDislike">
+        insert into dimension_image_rating(user_id,image_id,dimension_image_rating.like)values(#{userId},#{imageId},1)
+    </update>
+
+    <update id="updateList">
+        update dimension_image_rating set dimension_image_rating.like = 0
+        where image_id = #{imageId} and user_id = #{userId}
+    </update>
+
+    <update id="updateDislike">
+        update dimension_image_rating set dimension_image_rating.like = 1
+        where image_id = #{imageId} and user_id = #{userId}
+    </update>
+
+    <!-- 取消评分-->
+    <delete id="setCancelImageRate">
+        delete from dimension_image_rating where user_id = #{userId} and image_id = #{imageId}
+    </delete>
+
+    <!-- 获取好评数-->
+    <select id="getLikes" resultType="LONG">
+        select count(*) as count from dimension_image_rating where image_id = #{imageId} and `like` = 0
+    </select>
+
+    <!-- 获取好评数-->
+    <select id="getDislikes" resultType="LONG">
+        select count(*) as count from dimension_image_rating where image_id = #{imageId} and `like` = 1
+    </select>
+
+</mapper>
