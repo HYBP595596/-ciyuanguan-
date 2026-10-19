@@ -9,12 +9,16 @@ import com.dimension.utils.SessionUtil;
 import com.dimension.vo.ImageTagCategory;
 import com.dimension.vo.ImageTagTZP;
 
+import com.dimension.mapper.UserMapper;
+import com.dimension.entity.User;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class ImageServiceImpl implements ImageService {
     private ImageMapper imageMapper = SessionUtil.getMapper(ImageMapper.class);
+    private UserMapper userMapper = SessionUtil.getMapper(UserMapper.class);
 
     @Override
     public List<ImageTagTZP> getImageTagList(Integer pageNum, Integer pageSize) {
@@ -97,24 +101,28 @@ public class ImageServiceImpl implements ImageService {
         return imageTagList;
     }
 
+        // 在类里面注入 UserMapper
+    private UserMapper userMapper = SessionUtil.getMapper(UserMapper.class);
+
     @Override
     public ImageTagTZP GetImageDetailById(long imageId) {
-
         ImageTagTZP imageTag = new ImageTagTZP();
 
-        // 根据图像ID获取图像信息
         Image image = imageMapper.getImageById(imageId);
         if (image != null) {
-            // 根据图像ID获取关联的标签列表
             List<Tag> tagList = imageMapper.getTagListByImageId(image.getId());
-
-            // 将图像和标签列表设置到 ImageTag 对象中
             imageTag.setImage(image);
             imageTag.setTagList(tagList);
+
+            // 👇 新增：根据图片的 userId 查作者
+            if (image.getUserId() != null) {
+                User author = userMapper.getUserInfo(image.getUserId());
+                imageTag.setUser(author);
+                imageTag.setFansCount(0); // 粉丝数暂时填 0
+            }
         }
 
         return imageTag;
-
     }
 
     @Override
@@ -249,7 +257,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void addImage(String url, Integer categoryId, List<Integer> tagIds) {
+    public void addImage(String url, Integer categoryId, List<Integer> tagIds, Long userId) {
         Image image = new Image();                                         //封装数据
         image.setCategoryId(categoryId);
         image.setUrl(url);
@@ -259,6 +267,7 @@ public class ImageServiceImpl implements ImageService {
         image.setCreateTime(new Date());
         image.setVotes(0);
         image.setViews(0);
+        image.setUserId(userId); // 👈 新增：保存上传者ID
 
         imageMapper.insertImage(image);                                    //插入图片
         long imageId = image.getId();                                      //获取插入图片的主键

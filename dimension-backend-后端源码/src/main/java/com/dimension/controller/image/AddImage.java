@@ -25,12 +25,16 @@ public class AddImage extends BaseImageServlet{
         }
         Map map = JSONUtil.toBean(json.toString(), Map.class);
 
-        //将参数取出
+                //将参数取出
         String url = (String) map.get("url");
         Integer categoryId = (Integer) map.get("categoryValueId");
         List<Integer> tagIds = ((JSONArray) map.get("tagListValueIds")).toList(Integer.class);
+        
+        // 👇 新增：取出前端传来的 userId
+        Long userId = Long.valueOf(map.get("userId").toString());
 
-        imageService.addImage(url,categoryId,tagIds);
+        // 👇 修改：把 userId 传进去
+        imageService.addImage(url, categoryId, tagIds, userId);
 
 
     }

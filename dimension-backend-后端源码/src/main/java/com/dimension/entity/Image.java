@@ -48,4 +48,8 @@ public class Image {
      * 浏览数
      */
     private Integer views;
+        /**
+     * 上传者ID
+     */
+    private Long userId;
 }

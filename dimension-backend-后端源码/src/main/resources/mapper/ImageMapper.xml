@@ -8,16 +8,16 @@
         values(#{tagId}, #{imageId})
     </insert>
 
-    <insert id="insertImage" parameterType="com.dimension.entity.Image">
+        <insert id="insertImage" parameterType="com.dimension.entity.Image">
         <selectKey  resultType="java.lang.Long" order="AFTER" keyProperty="id">
             select last_insert_id()
         </selectKey>
         insert into dimension_image (category_id, url, score,
         collects, create_time, comments,
-        votes, views)
+        votes, views, user_id)
         values (#{categoryId}, #{url}, #{score},
         #{collects}, #{createTime}, #{comments},
-        #{votes}, #{views})
+        #{votes}, #{views}, #{userId})
     </insert>
 
 
