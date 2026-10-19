@@ -10,36 +10,36 @@
       <!-- 2. 右侧信息与操作 -->
       <aside class="info-box">
       
-        <!-- 上传者信息 -->
-<div class="author-box" v-if="imageTag && imageTag.image">
-  <div class="author-info" @click="clickUserCenter(imageTag.user?.id)">
-    <!-- 头像 (带容错) -->
-    <img 
-      :src="imageTag.user?.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" 
-      class="author-avatar" 
-    />
-    
-    <!-- 名字 + 粉丝数 -->
-    <div class="author-meta">
-      <div class="author-name">
-        {{ imageTag.user?.nickname || '未知作者' }}
+            <!-- 上传者信息 -->
+      <div class="author-box" v-if="imageTag && imageTag.user">
+        <div class="author-info" @click="clickUserCenter(imageTag.user.id)">
+          <!-- 头像 (带容错) -->
+          <img 
+            :src="imageTag.user.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" 
+            class="author-avatar" 
+          />
+          
+          <!-- 名字 + 粉丝数 -->
+          <div class="author-meta">
+            <div class="author-name">
+              {{ imageTag.user.nickname }}
+            </div>
+            <div class="author-fans">
+              {{ imageTag.fansCount || 0 }} 粉丝
+            </div>
+          </div>
+        </div>
+        
+        <!-- 关注按钮 -->
+        <el-button 
+          v-if="user && user.id !== imageTag.user.id"
+          :type="isFollowingAuthor ? 'info' : 'primary'" 
+          size="small" 
+          round
+          @click="toggleFollowAuthor">
+          {{ isFollowingAuthor ? '已关注' : '关注' }}
+        </el-button>
       </div>
-      <div class="author-fans" v-if="imageTag.user">
-        {{ imageTag.user.fansCount || 0 }} 粉丝
-      </div>
-    </div>
-  </div>
-  
-  <!-- 关注按钮 -->
-  <el-button 
-    v-if="imageTag.user && user.id !== imageTag.user.id"
-    :type="isFollowingAuthor ? 'info' : 'primary'" 
-    size="small" 
-    round
-    @click="toggleFollowAuthor">
-    {{ isFollowingAuthor ? '已关注' : '关注' }}
-  </el-button>
-</div>
 
         <!-- 标签区 -->
         <div class="tag-group">
