@@ -120,4 +120,7 @@
         UPDATE dimension_user SET dimension_user.status = 0 WHERE id = #{userId}
     </update>
 
+    <update id="updateUserCover">
+        UPDATE dimension_user SET cover_image = #{coverImage} WHERE id = #{userId}
+    </update>
 </mapper>

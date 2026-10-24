@@ -11,25 +11,25 @@ const routes = [
     component: () => import('@/views/Index/Index'),
     redirect: '/index-body',
     children: [
-        // 首页
+      // 首页
       {
         path: '/index-body',
         name: 'index-body',
         component: () => import('@/views/Index/IndexBody/IndexBody')
       },
-        // 图片详情页
+      // 图片详情页
       {
         path: '/image-detail',
         name: 'image-detail',
         component: () => import('@/views/Index/ImageDetail/ImageDetail')
       },
-        // 用户个人中心页
+      // 用户个人中心页
       {
         path: '/user-center',
         name: 'user-center',
         component: () => import('@/views/Index/UserCenter/UserCenter')
       },
-        // 间接路由跳转页
+      // 间接路由跳转页
       {
         path: '/blank-page',
         name: 'blank-page',
@@ -47,38 +47,38 @@ const routes = [
       }
     ],
   },
-    // 管理员登录页
+  // 管理员登录页
   {
     path: '/admin-login',
     name: 'admin-login',
     component: () => import('@/views/Admin/AdminLogin/AdminLogin')
   },
-    // 后台系统首页
+  // 后台系统首页
   {
     path: '/admin-index',
     name: 'admin-index',
     component: () => import('@/views/Admin/AdminIndex/AdminIndex'),
     redirect: '/image-management-image-management',
     children: [
-        // 后台系统首页
+      // 后台系统首页
       {
         path: '/image-management-image-management',
         name: 'image-management-image-management',
         component: () => import('@/views/Admin/AdminIndex/ImageManagement/ImageManagement/ImageManagement')
       },
-        // 新增图片页
+      // 新增图片页
       {
         path: '/image-management-add-image',
         name: 'image-management-add-image',
         component: () => import('@/views/Admin/AdminIndex/ImageManagement/AddImage/AddImage')
       },
-        // 评论管理页
+      // 评论管理页
       {
         path: '/comment-management',
         name: 'comment-management',
         component: () => import('@/views/Admin/AdminIndex/CommentManagement/CommentManagement')
       },
-        // 用户管理页
+      // 用户管理页
       {
         path: '/user-management',
         name: 'user-management',
@@ -91,5 +91,21 @@ const routes = [
 const router = new VueRouter({
   routes
 })
+
+// ================= 解决重复点击路由报错 =================
+// 获取 VueRouter 的原型上的 push 和 replace 方法
+const originalPush = VueRouter.prototype.push
+const originalReplace = VueRouter.prototype.replace
+
+// 重写 push 方法，捕获并忽略 NavigationDuplicated 错误
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(err => err)
+}
+
+// 重写 replace 方法
+VueRouter.prototype.replace = function replace(location) {
+  return originalReplace.call(this, location).catch(err => err)
+}
+// ======================================================
 
 export default router

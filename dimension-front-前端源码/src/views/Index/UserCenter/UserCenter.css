@@ -14,13 +14,13 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  height: 160px;
+  width: 100%;
   padding: 0 32px;
   border-radius: 14px;
   overflow: hidden;
-  background-image: url("@/static/image/user-center-background.jpg");
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   box-shadow: 0 4px 16px var(--shadow-color);
 }
 .user-avatar {
@@ -29,6 +29,7 @@
 .user-avatar img {
   width: 110px;
   height: 110px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, .8);
@@ -190,6 +191,7 @@
 .avatar-preview img {
   width: 160px;
   height: 160px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--border-color);

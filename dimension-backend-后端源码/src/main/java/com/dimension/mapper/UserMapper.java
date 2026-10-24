@@ -46,4 +46,6 @@ public interface UserMapper {
     void forbidUser(@Param("userId") Integer userId);
 
     void resumeUser(@Param("userId")Integer userId);
+
+    int updateUserCover(@Param("userId") Long userId, @Param("coverImage") String coverImage);
 }

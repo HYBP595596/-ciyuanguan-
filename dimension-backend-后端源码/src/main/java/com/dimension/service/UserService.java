@@ -34,4 +34,6 @@ public interface UserService {
 
     long getTotalWithNickname(String nickname);
 
+    int updateUserCover(Long userId, String coverImage);
+
 }

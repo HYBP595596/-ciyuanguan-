@@ -29,7 +29,7 @@ public class AdminAuthenticationFilter implements Filter {
 //        List<String> blacklist = Arrays.asList("/GetUserTableWithNoCondition",
 //                "/GetImageTableWithNoCondition", "/GetCommentTableWithNoCondition");
 //
-//        if ("/dimension/".equals(req.getRequestURI())) {
+//        if ("/dimension_dev_01_war_exploded/".equals(req.getRequestURI())) {
 //            filterChain.doFilter(servletRequest, servletResponse);
 //            return;
 //        }

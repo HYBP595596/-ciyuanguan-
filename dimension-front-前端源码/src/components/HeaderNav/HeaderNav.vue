@@ -130,6 +130,12 @@ export default {
     }
     if (this.event && this.event.$on) {
       this.event.$on('popLoginForm', () => { this.loginDialogVisible = true })
+
+      // 👇 新增这一段：监听信息更新事件
+      this.event.$on('user-info-updated', (newUser) => {
+        this.user = newUser; // 收到通知后，立刻替换最新的用户数据
+      })
+
     }
   },
   methods: {

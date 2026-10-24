@@ -1,16 +1,19 @@
-# IDEA配置
+# IDEA
 .idea/
 *.iml
 *.ipr
 *.iws
 
-# Maven编译产物
-target/
-target/*
-
-# VS Code配置
+# VS Code
 .vscode/
 
-# 系统文件
+# Maven
+target/
+
+# Node.js
+node_modules/
+dist/
+
+# OS
 .DS_Store
 Thumbs.db

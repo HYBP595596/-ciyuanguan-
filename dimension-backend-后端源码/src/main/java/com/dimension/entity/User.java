@@ -45,4 +45,8 @@ public class User {
      * 出生日期
      */
     private Date birthday;
+    /**
+     * 主页背景图
+     */
+    private String coverImage;
 }

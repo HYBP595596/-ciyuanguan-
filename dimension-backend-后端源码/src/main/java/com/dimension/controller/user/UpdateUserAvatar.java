@@ -5,14 +5,16 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
 
 // 接口9.3--小徐
 @WebServlet(name = "UpdateUserAvatar", value = "/UpdateUserAvatar")
 public class UpdateUserAvatar extends BaseUserServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 获取请求参数 userId、avatar
-        String avatar = req.getParameter("avatar");
+        // 原来的：String avatar = req.getParameter("avatar");
+        // 改成：
+        String avatar = URLDecoder.decode(req.getParameter("avatar"), "UTF-8");
         Long userId = null;
         try {
             userId = Long.parseLong(req.getParameter("userId"));

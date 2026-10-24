@@ -30,8 +30,9 @@
     </resultMap>
 
     <insert id="addImageWatchHistory">
-        INSERT INTO dimension_watch_history(creat_time,image_id,user_id)
+        INSERT INTO dimension_watch_history(creat_time, image_id, user_id)
         VALUES (NOW(), #{image_id}, #{user_id})
+            ON DUPLICATE KEY UPDATE creat_time = NOW()
     </insert>
 
     <select id="getUserWatchHistory" resultType="com.dimension.vo.ImageHistoryCategory" resultMap="getUserWatchHistory">

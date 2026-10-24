@@ -207,7 +207,7 @@ export default {
     clickAllCategory() { this.$router.push('/index-body') },
 
     downloadImage() {
-      window.open("http://47.113.192.130:9090/dimension/DownloadImage?url=" + this.imageTag.image.url)
+      window.open("http://47.113.192.130:9090/dimension_dev_01_war_exploded/DownloadImage?url=" + this.imageTag.image.url)
     },
 
     publishComment() {
@@ -228,11 +228,21 @@ export default {
         })
       })
     },
-    // 点击作者头像跳转到作者主页（可复用你的 BlankPage2 逻辑）
-clickUserCenter(authorId) {
-  // 如果后端支持查看他人主页，可以跳转过去；目前先做个提示
-  this.$message.info('查看用户 ' + authorId + ' 的主页功能开发中');
-},
+    // 点击作者头像跳转到作者主页
+    clickUserCenter(authorId) {
+      if (!authorId) return;
+
+      // 如果是自己点自己，直接跳自己的个人中心
+      if (this.isLogin && this.user.id === authorId) {
+        this.$router.push({ path: '/user-center' });
+      } else {
+        // 如果是点别人，把作者的 userId 通过 query 传过去
+        this.$router.push({
+          path: '/user-center',
+          query: { userId: authorId }
+        });
+      }
+    },
 
     toggleFollowAuthor() {
       if (!this.isLogin) {

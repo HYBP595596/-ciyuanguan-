@@ -1,7 +1,8 @@
 <template>
   <div class="uc-page">
     <!-- ============ 顶部用户信息 ============ -->
-    <div class="uc-header">
+    <!-- 替换掉原来的 background-image CSS，用 :style 动态绑定 -->
+    <div class="uc-header" :style="getCoverStyle()">
       <div class="user-avatar">
         <img :src="user.avatar" alt=""/>
       </div>
@@ -15,7 +16,7 @@
     <div class="uc-body">
       <el-tabs v-model="activeUserTabName" @tab-click="clickTab">
         <!-- 个人信息 -->
-        <el-tab-pane label="个人信息" name="infoTab">
+        <el-tab-pane label="个人信息" name="infoTab" style="height: 330px">
           <div class="info-pane">
             <el-form label-width="100px" label-position="left">
               <el-form-item label="账号">{{ user.username }}</el-form-item>
@@ -30,7 +31,7 @@
         </el-tab-pane>
 
         <!-- 收藏 -->
-        <el-tab-pane label="收藏" name="collectTab">
+        <el-tab-pane label="收藏" name="collectTab" v-if="isSelf">
           <el-empty
             v-if="imageTagBookmarkList && imageTagBookmarkList.length == 0"
             :image-size="260"
@@ -80,7 +81,7 @@
         </el-tab-pane>
 
         <!-- 历史 -->
-        <el-tab-pane label="历史" name="historyTab">
+        <el-tab-pane label="历史" name="historyTab" class="history" v-if="isSelf">
           <div class="grid-list" v-if="imageTagHistoryCategoryList && imageTagHistoryCategoryList.length">
             <div
               class="grid-card"
@@ -123,18 +124,19 @@
         </el-tab-pane>
 
         <!-- 修改信息 -->
-        <el-tab-pane label="修改信息" name="updateTab">
+        <el-tab-pane label="修改信息" name="updateTab" v-if="isSelf">
           <el-tabs tab-position="left" type="border-card" @tab-click="clickUpdate" style="min-height: 420px">
             <!-- 修改头像 -->
             <el-tab-pane label="修改头像">
               <div class="avatar-update">
                 <div class="avatar-picker">
                   <el-upload
-                    :before-upload="beforeUpload"
-                    :on-success="userAvatarUploadSuccess"
-                    :show-file-list="false"
-                    action="http://47.113.192.130:9090/dimension/UploadImageOrUserAvatar"
-                    :limit="1">
+                      ref="avatarUpload"
+                      :before-upload="beforeUpload"
+                      :on-success="userAvatarUploadSuccess"
+                      :show-file-list="false"
+                      :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=avatar&userId=' + user.id"
+                      :limit="1">
                     <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
                   </el-upload>
                   <el-button type="primary" @click="updateUserAvatar">更新头像</el-button>
@@ -173,6 +175,37 @@
                   <el-button type="primary" style="width: 100%" @click="saveUserInfo">保存</el-button>
                 </el-form-item>
               </el-form>
+            </el-tab-pane>
+
+            <!-- 修改背景图标签页 -->
+            <el-tab-pane label="修改背景">
+              <div class="avatar-update">
+                <div class="avatar-picker">
+                  <el-upload
+                      ref="coverUpload"
+                      :before-upload="beforeUpload"
+                      :on-success="userCoverUploadSuccess"
+                      :show-file-list="false"
+                      :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=cover&userId=' + user.id"
+                      :limit="1">
+                    <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
+                  </el-upload>
+                  <el-button type="primary" @click="updateUserCover">更新背景</el-button>
+                  <div style="margin-top: 20px;">
+                    <span style="font-size: 14px; color: #666;">调整背景高度: {{ coverHeight }}px</span>
+                    <el-slider
+                        v-model="coverHeight"
+                        :min="150"
+                        :max="500"
+                        :step="10">
+                    </el-slider>
+                  </div>
+                </div>
+                <div class="avatar-preview">
+                  <!-- 预览区域，为了美观把背景图按比例显示 -->
+                  <img :src="selectCover" alt="" style="width: 300px; height: 150px; border-radius: 8px; object-fit: cover;" />
+                </div>
+              </div>
             </el-tab-pane>
 
             <!-- 修改密码 -->
@@ -231,17 +264,43 @@ export default {
         newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
         confirmNewPassword: [{ required: true, message: '请输入确认密码', trigger: 'blur' }]
       },
-      imageTagHistoryCategoryList: []
+      imageTagHistoryCategoryList: [],
+      isSelf: true, // 是否是当前登录用户自己的主页
+      selectCover: '', // 用于预览要更新的背景
+      coverHeight: 260,
     }
   },
   mounted() {
-    if (!sessionStorage.getItem('user')) {
-      this.$router.push('/index-body')
-      return
+    console.log('刷新了')
+    const loginUserStr = sessionStorage.getItem('user');
+    if (!loginUserStr) {
+      this.$router.push('/index-body');
+      return;
     }
-    this.user = JSON.parse(sessionStorage.getItem('user'))
-    this.selectImage = this.user.avatar
-    this.handleRouter()
+
+    const loginUser = JSON.parse(loginUserStr);
+    const targetUserId = this.$route.query.userId; // 看看路由里有没有带别人的 userId
+
+    if (targetUserId && String(targetUserId) !== String(loginUser.id)) {
+      // 看别人主页
+      this.isSelf = false;
+      this.user = {};
+      this.getTargetUserInfo(targetUserId);
+    } else {
+      // 👇 修改这里：看自己主页时，不要去读缓存，直接去后端请求最新数据！
+      this.isSelf = true;
+      this.user = loginUser; // 先用缓存垫底，防止页面闪烁
+      this.selectImage = this.user.avatar;
+      this.getTargetUserInfo(loginUser.id); // 👈 调用请求接口的方法拿最新数据
+      this.handleRouter();
+    }
+
+    // 初始化背景高度，如果缓存里有就用缓存的，没有就默认 220
+    this.coverHeight = Number(sessionStorage.getItem('coverHeight')) || 220;
+
+    if (this.isSelf) {
+      this.selectCover = this.user.coverImage || '';
+    }
   },
   methods: {
     format1(t) { return format1(t) },
@@ -307,18 +366,23 @@ export default {
       })
     },
 
+    // 1. 修改头像的方法
     updateUserAvatar() {
-      this.request.post(`UpdateUserAvatar?userId=${this.user.id}&avatar=${this.selectImage}`).then(() => {
-        this.user.avatar = this.selectImage
-        sessionStorage.setItem('user', JSON.stringify(this.user))
-        this.$message.success({ message: '更新成功，即将刷新页面', duration: 1000 })
-        setTimeout(() => location.reload(), 1000)
+      const safeAvatar = encodeURIComponent(this.selectImage);
+      this.request.post(`UpdateUserAvatar?userId=${this.user.id}&avatar=${this.selectImage}`).then(res => {
+        this.user.avatar = this.selectImage;
+        sessionStorage.setItem('user', JSON.stringify(this.user));
+
+        this.event.$emit('user-info-updated', this.user);
+
+        this.$message.success('头像更新成功！');
       })
     },
-
     userAvatarUploadSuccess(res) {
       this.$message.success('上传成功')
       this.selectImage = res.url
+
+      this.$refs.avatarUpload.clearFiles()
     },
 
     handleCurrentChange(currentPage) {
@@ -378,7 +442,81 @@ export default {
         }
         this.historyPagination.total = res.total
       })
-    }
+    },
+
+    // 获取其他人的信息
+    getTargetUserInfo(userId) {
+      this.request.get(`GetUserInfo?userId=${userId}`).then(res => {
+        console.log("【后端返回的完整数据】:", res);
+
+        // 1. 拿到数据
+        this.user = res.user || res;
+
+        // 2. 同步所有预览图（头像、背景）
+        this.selectImage = this.user.avatar;
+        if (this.isSelf) {
+          this.selectCover = this.user.coverImage || '';
+        }
+
+        // 3. 只有在看“别人”的主页时，才强制切回“个人信息”标签
+        // 如果是看自己的，就保持在你当前按 F5 时的标签页，不乱跳！
+        if (!this.isSelf) {
+          this.activeUserTabName = 'infoTab';
+        }
+      }).catch(err => {
+        this.$message.error('获取用户信息失败');
+        this.$router.push('/index-body');
+      });
+    },
+    // 动态获取背景图
+    getCoverStyle() {
+      // 1. 定义公共高度样式（无论有没有背景图，高度都跟着滑块走）
+      let styleObj = {
+        height: this.coverHeight + 'px'
+      };
+
+      // 2. 如果有自定义背景图
+      if (this.user && this.user.coverImage) {
+        styleObj.backgroundImage = `url("${this.user.coverImage}")`;
+        styleObj.backgroundSize = 'cover';
+        styleObj.backgroundPosition = 'center';
+        styleObj.backgroundRepeat = 'no-repeat';
+        // 如果有背景图，去掉边框，保持美观
+        styleObj.border = 'none';
+      }
+      // 3. 如果没有设置背景图，返回空白/纯色
+      else {
+        styleObj.backgroundImage = 'none';
+        styleObj.backgroundColor = 'var(--bg-hover)';
+        styleObj.border = '1px solid var(--border-color)';
+      }
+
+      return styleObj;
+    },
+
+    // 背景图上传成功
+    userCoverUploadSuccess(res) {
+      this.$message.success('背景上传成功，请点击更新背景');
+      this.selectCover = res.url;
+
+      this.$refs.coverUpload.clearFiles()
+    },
+
+    // 2. 修改背景的方法
+    updateUserCover() {
+      const safeCover = encodeURIComponent(this.selectCover);
+      this.request.post(`UpdateUserCover?userId=${this.user.id}&coverImage=${this.selectCover}`).then(res => {
+        this.user.coverImage = this.selectCover;
+        sessionStorage.setItem('user', JSON.stringify(this.user));
+
+        sessionStorage.setItem('coverHeight', this.coverHeight);
+        this.event.$emit('user-info-updated', this.user);
+
+        this.$message.success('背景更新成功！');
+      });
+    },
+
+
   }
 }
 </script>

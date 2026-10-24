@@ -143,4 +143,9 @@ public class UserServiceImpl implements UserService {
     public long getTotalWithNickname(String nickname) {
         return userMapper.getTotalWithNickname(nickname);
     }
+
+    @Override
+    public int updateUserCover(Long userId, String coverImage) {
+        return userMapper.updateUserCover(userId, coverImage);
+    }
 }

@@ -42,6 +42,8 @@
     <!--引入映射文件-->
     <mappers>
 <!--        <package name="com/lx/mapper"/>--> <!--这个不好用啊-->
+        <mapper resource="mapper/FollowMapper.xml"/>
+        <mapper resource="mapper/FollowMapper.xml"/>
         <mapper resource="mapper/AdminMapper.xml"/>
         <mapper resource="mapper/ImageCategoryMapper.xml"/>
         <mapper resource="mapper/CommentMapper.xml"/>

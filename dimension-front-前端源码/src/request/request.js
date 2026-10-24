@@ -4,8 +4,8 @@ import router from '@/router'
 import ElementUI from 'element-ui'
 
 const request = axios.create({
-    baseURL: '/dimension/',
-    // baseURL: 'http://localhost:9000/dimension/',
+    baseURL: '/dimension_dev_01_war_exploded/',
+    // baseURL: 'http://localhost:9000/dimension_dev_01_war_exploded/',
     headers: {
         'Content-Type': 'application/json; charset=utf-8'
     },

@@ -5,10 +5,10 @@
     <div class="add-image-form" style="margin-left: 15%">
       <el-form :model="addImageForm" ref="addImageForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="图片">
-<!--          action="http://localhost:9000/dimension/UploadImageOrUserAvatar"-->
+<!--          action="http://localhost:9000/dimension_dev_01_war_exploded/UploadImageOrUserAvatar"-->
           <el-upload
               class="avatar-uploader"
-              action="http://47.113.192.130:9090/dimension/UploadImageOrUserAvatar"
+              action="http://localhost:8081/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=illust"
               :show-file-list="false"
               :before-upload="beforeUpload"
               :on-success="handleAvatarSuccess">
