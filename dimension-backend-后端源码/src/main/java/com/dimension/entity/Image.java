@@ -52,4 +52,17 @@ public class Image {
      * 上传者ID
      */
     private Long userId;
+    /**
+     * 审核状态: 0待审核, 1已通过, 2已驳回
+     */
+    private Integer status;
+    /**
+     * 漫画多图 (用逗号分隔)
+     */
+    private String extraImages;
+
+    /**
+     * 小说TXT文件地址
+     */
+    private String txtUrl;
 }

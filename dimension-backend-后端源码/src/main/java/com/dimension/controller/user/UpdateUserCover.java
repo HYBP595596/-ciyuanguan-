@@ -15,6 +15,9 @@ public class UpdateUserCover extends BaseUserServlet {
         // 原来的：String coverImage = req.getParameter("coverImage");
         // 改成：
         String coverImage = URLDecoder.decode(req.getParameter("coverImage"), "UTF-8");
-        userService.updateUserCover(userId, coverImage);
+
+        Integer coverHeight = Integer.parseInt(req.getParameter("coverHeight"));
+
+        userService.updateUserCover(userId, coverImage, coverHeight);
     }
 }

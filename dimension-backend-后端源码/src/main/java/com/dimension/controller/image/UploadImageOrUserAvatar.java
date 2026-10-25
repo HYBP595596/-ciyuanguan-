@@ -17,7 +17,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption; // 👈 新增导入，用于覆盖文件
 
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 10)
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 200)
 @WebServlet(name = "UploadImageOrUserAvatar", value = "/UploadImageOrUserAvatar")
 public class UploadImageOrUserAvatar extends BaseImageServlet {
     @Override

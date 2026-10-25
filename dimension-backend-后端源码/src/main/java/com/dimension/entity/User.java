@@ -49,4 +49,17 @@ public class User {
      * 主页背景图
      */
     private String coverImage;
+    /**
+     * 背景高度
+     */
+    private Integer coverHeight;
+    /**
+     * 画师状态: 0未申请, 1待审核, 2已通过, 3被驳回
+     */
+    private Integer artistStatus;
+
+    /**
+     * 画师申请说明
+     */
+    private String artistApplyDesc;
 }

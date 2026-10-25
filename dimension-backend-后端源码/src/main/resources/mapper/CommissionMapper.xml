@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.CommissionMapper">
+
+    <update id="updateOrderStatusByOrderNo">
+        UPDATE dimension_commission_order SET status = #{status} WHERE order_no = #{orderNo}
+    </update>
+
+    <update id="updateTransactionId">
+        UPDATE dimension_commission_order SET transaction_id = #{transactionId} WHERE order_no = #{orderNo}
+    </update>
+
+    <insert id="insertTransaction" parameterType="com.dimension.entity.Transaction">
+        INSERT INTO dimension_transaction
+        (order_no, buyer_id, artist_id, amount, type, transaction_id, create_time)
+        VALUES
+            (#{orderNo}, #{buyerId}, #{artistId}, #{amount}, #{type}, #{transactionId}, NOW())
+    </insert>
+
+    <!-- 巧妙使用 SELECT 避免从前端传 orderId -->
+    <insert id="insertOrderLogByOrderNo">
+        INSERT INTO dimension_order_log (order_id, operator_id, action)
+        SELECT id, #{operatorId}, #{action} FROM dimension_commission_order WHERE order_no = #{orderNo}
+    </insert>
+
+</mapper>

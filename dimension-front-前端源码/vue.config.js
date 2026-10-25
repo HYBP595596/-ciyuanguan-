@@ -5,7 +5,6 @@ module.exports = defineConfig({
   devServer: {
     host: '0.0.0.0',
     port: 8080,
-    strictPort: true,
     allowedHosts: 'all',
     proxy: {
       '/dimension_dev_01_war_exploded/': {

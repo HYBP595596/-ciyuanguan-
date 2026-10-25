@@ -207,3 +207,20 @@
   max-width: 480px;
   margin: 20px auto;
 }
+
+.user-avatar-dummy {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: #409EFF; /* Element UI 经典的蓝色 */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px; /* 字体放大一点，适合大尺寸头像 */
+  font-weight: 600;
+
+  /* 这里的边框和阴影要和原来 img 的样式保持一致，防止切换时跳动 */
+  border: 3px solid rgba(255, 255, 255, .8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+}

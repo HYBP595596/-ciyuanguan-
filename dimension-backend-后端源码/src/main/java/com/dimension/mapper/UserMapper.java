@@ -47,5 +47,14 @@ public interface UserMapper {
 
     void resumeUser(@Param("userId")Integer userId);
 
-    int updateUserCover(@Param("userId") Long userId, @Param("coverImage") String coverImage);
+    int updateUserCover(@Param("userId") Long userId, @Param("coverImage") String coverImage,@Param("coverHeight") Integer coverHeight);
+
+    int applyArtist(@Param("userId") Long userId, @Param("desc") String desc);
+
+    List<User> getPendingArtists(@Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize);
+
+    long getPendingArtistTotal();
+
+    int auditArtist(@Param("userId") Long userId, @Param("status") Integer status);
+
 }

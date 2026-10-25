@@ -54,5 +54,6 @@
         <mapper resource="mapper/TagMapper.xml"/>
         <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="mapper/ImageRatingMapper.xml"/>
+        <mapper resource="mapper/CommissionMapper.xml"/>
     </mappers>
 </configuration>

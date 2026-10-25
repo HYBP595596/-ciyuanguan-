@@ -121,6 +121,29 @@
     </update>
 
     <update id="updateUserCover">
-        UPDATE dimension_user SET cover_image = #{coverImage} WHERE id = #{userId}
+        UPDATE dimension_user SET cover_image = #{coverImage}, cover_height = #{coverHeight} WHERE id = #{userId}
+    </update>
+
+    <update id="applyArtist">
+        UPDATE dimension_user
+        SET artist_status = 1, artist_apply_desc = #{desc}
+        WHERE id = #{userId}
+    </update>
+
+    <select id="getPendingArtists" resultType="com.dimension.entity.User">
+        SELECT * FROM dimension_user
+        WHERE artist_status = 1
+        ORDER BY id DESC
+            LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getPendingArtistTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_user WHERE artist_status = 1
+    </select>
+
+    <update id="auditArtist">
+        UPDATE dimension_user
+        SET artist_status = #{status}
+        WHERE id = #{userId}
     </update>
 </mapper>

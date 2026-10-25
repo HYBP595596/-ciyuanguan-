@@ -22,8 +22,7 @@ public interface ImageService {
 
     void updateImageTagsAndCategory(Integer categoryId, List<Integer> tagIds, Long imageId);
 
-    // ImageService.java
-void addImage(String url, Integer categoryId, List<Integer> tagIds, Long userId);
+    void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId);
 
     void computeImageScore(Long imageId, Integer likes, Integer dislikes);
 
@@ -48,4 +47,7 @@ void addImage(String url, Integer categoryId, List<Integer> tagIds, Long userId)
     void increaseImageVotesIncrement (long imageId);
 
     void imageCommentsDecrement(Long imageId);
+
+    long getCategoryImageTotal(Integer categoryId);
+
 }

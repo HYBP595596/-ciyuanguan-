@@ -17,21 +17,20 @@ public class GetImageListWithCategoryId extends BaseImageServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 1.获取参数
         Integer categoryId = Integer.parseInt(req.getParameter("categoryId"));
         Integer pageNum = PageUtil.getPageNum(req);
         Integer pageSize = PageUtil.getPageSize(req);
 
-        // 2.建vo，如果有必要的话
+        // 1. 查列表
+        List<ImageTagTZP> imageTagList = imageService.getImageListWithCategoryId(categoryId, pageNum, pageSize);
 
-        // 3.调用service层获取数据
+        // 2. 查总数（👈 新增）
+        long total = imageService.getCategoryImageTotal(categoryId);
 
-        List<ImageTagTZP> imageTagList = imageService.getImageListWithCategoryId(categoryId,pageNum, pageSize);
-
-
-        // 5.输出数据
-//        JsonResultOutputUtil.outputJsonResult(resp, imageTagList);
+        // 3. 组装返回（👈 加上了 total）
         JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
-                .put("imageTagList", imageTagList).build());
+                .put("imageTagList", imageTagList)
+                .put("total", total)
+                .build());
     }
 }

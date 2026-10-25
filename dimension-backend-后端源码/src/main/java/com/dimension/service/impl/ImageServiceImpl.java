@@ -16,9 +16,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.dimension.mapper.TagMapper;
+import com.dimension.entity.Tag;
+
+
+
 public class ImageServiceImpl implements ImageService {
     private ImageMapper imageMapper = SessionUtil.getMapper(ImageMapper.class);
     private UserMapper userMapper = SessionUtil.getMapper(UserMapper.class);
+    private TagMapper tagMapper = SessionUtil.getMapper(TagMapper.class);
+
 
     @Override
     public List<ImageTagTZP> getImageTagList(Integer pageNum, Integer pageSize) {
@@ -256,26 +263,55 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void addImage(String url, Integer categoryId, List<Integer> tagIds, Long userId) {
-        Image image = new Image();                                         //封装数据
+    public void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId) {
+        // 1. 先处理标签：区分老 ID 和新输入的字符串
+        List<Integer> finalTagIds = new ArrayList<>();
+        if (rawTags != null) {
+            for (Object tagObj : rawTags) {
+                if (tagObj instanceof Number) {
+                    // 如果是数字，说明是之前就有的老标签
+                    finalTagIds.add(((Number) tagObj).intValue());
+                } else if (tagObj instanceof String) {
+                    // 如果是字符串，说明是用户新输入的标签
+                    String tagName = (String) tagObj;
+                    Tag existTag = tagMapper.getTagByName(tagName);
+                    if (existTag != null) {
+                        // 库里已经有了，直接用它的 ID
+                        finalTagIds.add(existTag.getId());
+                    } else {
+                        // 库里没有，新建一个标签
+                        Tag newTag = new Tag();
+                        newTag.setName(tagName);
+                        tagMapper.insertTag(newTag);
+                        finalTagIds.add(newTag.getId()); // 获取刚刚插入生成的新 ID
+                    }
+                }
+            }
+        }
+
+        // 2. 正常插入图片
+        Image image = new Image();
         image.setCategoryId(categoryId);
         image.setUrl(url);
-        image.setScore(5);                                                 //图片初始分为5
+        image.setScore(5);
         image.setCollects(0);
         image.setComments(0);
         image.setCreateTime(new Date());
         image.setVotes(0);
         image.setViews(0);
-        image.setUserId(userId); // 👈 新增：保存上传者ID
+        image.setUserId(userId);
+        image.setStatus(0); // 0表示待审核
 
-        imageMapper.insertImage(image);                                    //插入图片
-        long imageId = image.getId();                                      //获取插入图片的主键
+        imageMapper.insertImage(image);
+        long imageId = image.getId();
 
-        for (Integer tagId : tagIds) {                                     //往图片-标签表中添加记录
-            imageMapper.insertImageTagRelationByImageId(imageId,tagId);
+        // 3. 插入图片-标签关系
+        for (Integer tagId : finalTagIds) {
+            imageMapper.insertImageTagRelationByImageId(imageId, tagId);
         }
 
-        imageMapper.increaseCategoryCount(categoryId);                     //根据分类id将该分类的count数量+1
+        // 4. 分类数量 + 1
+        imageMapper.increaseCategoryCount(categoryId);
     }
 
     @Override
@@ -291,5 +327,9 @@ public class ImageServiceImpl implements ImageService {
         }
 
         imageMapper.updateImageScore(score, imageId);           //更新评分
+    }
+    @Override
+    public long getCategoryImageTotal(Integer categoryId) {
+        return imageMapper.getCategoryImageTotal(categoryId);
     }
 }

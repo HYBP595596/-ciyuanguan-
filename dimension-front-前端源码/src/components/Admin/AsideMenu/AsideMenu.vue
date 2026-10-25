@@ -1,10 +1,10 @@
 <template>
   <div class="sidebar" :class="{ 'sidebar-collapsed': collapsed }">
     <el-menu
-      :default-active="activeMenu"
-      class="sidebar-menu"
-      :collapse="collapsed"
-      @select="handleSelect"
+        :default-active="activeMenu"
+        class="sidebar-menu"
+        :collapse="collapsed"
+        @select="handleSelect"
     >
       <el-menu-item index="home">
         <i class="el-icon-house"></i>
@@ -67,6 +67,18 @@
 
       <div class="menu-divider" v-show="!collapsed"></div>
 
+      <!-- 👑 管理后台专属菜单：审核 -->
+      <el-menu-item index="audit" v-if="isAdmin">
+        <i class="el-icon-s-check"></i>
+        <span slot="title">作品审核</span>
+      </el-menu-item>
+      <el-menu-item index="artist-audit" v-if="isAdmin">
+        <i class="el-icon-user"></i>
+        <span slot="title">画师审核</span>
+      </el-menu-item>
+
+      <div class="menu-divider" v-show="!collapsed"></div>
+
       <el-menu-item index="project">
         <i class="el-icon-files"></i>
         <span slot="title">用戶企劃</span>
@@ -100,24 +112,36 @@
 export default {
   name: 'SidebarNav',
   props: {
-    collapsed: {
-      type: Boolean,
-      default: false
-    },
+    collapsed: { type: Boolean, default: false },
     event: Object,
     isLogin: Boolean
   },
   data() {
     return {
-      activeMenu: 'home'
+      activeMenu: 'home',
+      isAdmin: false
     }
   },
+  mounted() {
+    // 如果 sessionStorage 里有 adminToken，说明当前是管理员在后台
+    this.isAdmin = !!sessionStorage.getItem('adminToken');
+  },
+
   methods: {
     handleSelect(key) {
       this.activeMenu = key
       switch (key) {
         case 'home':
-          if (this.$route.path !== '/index-body') this.$router.push('/index-body')
+          this.$router.push({ path: '/index-body', query: {} })
+          break
+        case 'illust':
+          this.$router.push({ path: '/index-body', query: { categoryId: 1 } })
+          break
+        case 'comic':
+          this.$router.push({ path: '/index-body', query: { categoryId: 2 } })
+          break
+        case 'novel':
+          this.$router.push({ path: '/index-body', query: { categoryId: 3 } })
           break
         case 'bookmark':
           this.clickCollect()
@@ -127,6 +151,13 @@ export default {
           break
         case 'newest':
           this.event && this.event.$emit('searchImageWithKeyword', '最新作品')
+          break
+          // 🚨 后台审核跳转
+        case 'audit':
+          this.$router.push('/audit-management')
+          break
+        case 'artist-audit':
+          this.$router.push('/artist-management')
           break
         default:
           this.$message.info('功能开发中')
@@ -148,9 +179,7 @@ export default {
         this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'historyTab' } })
       }
     },
-    /* 底部信息栏点击（接口预留，后续可换成路由跳转或接口请求） */
     onFooterClick(name) {
-      // TODO: 替换为：this.$router.push('/help') 或 this.request.get(`GetHelpContent?name=${name}`)
       this.$message.info(name + ' 功能开发中')
     }
   }
@@ -173,6 +202,7 @@ export default {
   border-right: 1px solid var(--border-color);
   box-shadow: 1px 0 4px var(--shadow-color);
   scrollbar-width: thin;
+  /* noinspection CssUnresolvedCustomProperty */
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
@@ -250,10 +280,12 @@ export default {
   background: transparent;
 }
 .sidebar::-webkit-scrollbar-thumb {
+  /* noinspection CssUnresolvedCustomProperty */
   background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 .sidebar::-webkit-scrollbar-thumb:hover {
+  /* noinspection CssUnresolvedCustomProperty */
   background: var(--scrollbar-thumb-hover);
 }
 

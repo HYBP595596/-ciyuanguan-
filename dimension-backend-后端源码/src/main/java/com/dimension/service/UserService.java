@@ -34,6 +34,15 @@ public interface UserService {
 
     long getTotalWithNickname(String nickname);
 
-    int updateUserCover(Long userId, String coverImage);
+    int updateUserCover(Long userId, String coverImage, Integer coverHeight);
+
+    int applyArtist(Long userId, String desc);
+
+    List<User> getPendingArtists(Integer pageNum, Integer pageSize);
+
+    long getPendingArtistTotal();
+
+    int auditArtist(Long userId, Integer status);
+
 
 }

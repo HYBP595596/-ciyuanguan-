@@ -9,35 +9,6 @@
   color: var(--text-primary);
 }
 
-/* ================= 分类栏外层：箭头 + 滚动区 ================= */
-.category-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0 14px;
-  background: var(--bg-page);
-}
-
-/* ---------- 滚动区 ---------- */
-.category-bar {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 2px;
-}
-.category-bar::-webkit-scrollbar { display: none; }
-
 /* ---------- 箭头按钮 ---------- */
 .scroll-arrow {
   flex-shrink: 0;
@@ -68,41 +39,71 @@
   pointer-events: none;
 }
 
-/* ---------- 单个标签 ---------- */
-.category-div {
-  flex-shrink: 0;
-  display: inline-flex;
+/* ================= 顶部标签栏 ================= */
+.tag-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
   align-items: center;
-  height: 34px;
-  padding: 0 38px;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-}
-.category-div:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
-}
-.category-div.is-active {
-  outline: 2px solid #fff;
-  outline-offset: -2px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .28);
-}
-.category-div.is-all {
-  background: linear-gradient(135deg, #2f3542, #4b5161);
+  gap: 12px;
+  padding: 10px 0 15px;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-color);
 }
 
-.category-name {
-  color: #fff;
-  font-weight: 600;
+.tag-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
+
+/* 滚动区域 */
+.tag-bar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* 隐藏滚动条 */
+  padding: 4px 0;
+}
+.tag-bar::-webkit-scrollbar { display: none; }
+
+/* 单个标签（气泡设计） */
+.tag-item {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tag-item:hover {
+  background: var(--bg-hover);
+  border-color: #0096fa;
+  color: #0096fa;
+}
+
+/* 选中状态：Pixiv 经典的蓝色高亮 */
+.tag-item.is-active {
+  background: #0096fa;
+  color: #fff;
+  border-color: #0096fa;
+  box-shadow: 0 2px 8px rgba(0, 150, 250, 0.3);
+}
+
+
 
 /* ================= 图片列表：网格 ================= */
 .image-list-body {

@@ -101,4 +101,14 @@ public interface ImageMapper {
     void increaseImageVotesIncrement(@Param("imageId") long imageId);
 
     void categoryCountDecrement(@Param("categoryId") long categoryId);
+
+    List<Image> getUserImageList(@Param("userId") Long userId);
+
+    long getCategoryImageTotal(@Param("categoryId") Integer categoryId);
+
+    List<Image> getPendingImageList(@Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize);
+
+    long getPendingTotal();
+
+
 }

@@ -8,16 +8,16 @@
         values(#{tagId}, #{imageId})
     </insert>
 
-        <insert id="insertImage" parameterType="com.dimension.entity.Image">
+    <insert id="insertImage" parameterType="com.dimension.entity.Image">
         <selectKey  resultType="java.lang.Long" order="AFTER" keyProperty="id">
             select last_insert_id()
         </selectKey>
         insert into dimension_image (category_id, url, score,
         collects, create_time, comments,
-        votes, views, user_id)
+        votes, views, user_id, status)
         values (#{categoryId}, #{url}, #{score},
         #{collects}, #{createTime}, #{comments},
-        #{votes}, #{views}, #{userId})
+        #{votes}, #{views}, #{userId}, #{status})
     </insert>
 
 
@@ -125,9 +125,8 @@
         update dimension_image set comments = comments - 1 where id = #{imageId}
     </update>
 
-    <!--    3.2 /GetImageListWithNoCondition => 无条件获取图片列表-->
     <select id="getImageListWithNoCondition" resultType="com.dimension.entity.Image">
-        select * from dimension_image order by score desc limit #{pageNum}, #{pageSize}
+        select * from dimension_image where status = 1 order by score desc limit #{pageNum}, #{pageSize}
     </select>
 
     <select id="getTagListWithNoCondition" resultType="com.dimension.entity.Tag">
@@ -136,19 +135,16 @@
     </select>
 
     <select id="getTotalWithNoCondition" resultType="java.lang.Long">
-        select count(*) from dimension_image
+        select count(*) from dimension_image where status = 1
     </select>
 
-    <!--    3.1 /GetImageListWithCondition => 根据关键字获取图片列表-->
     <select id="getImageListWithCondition" resultType="com.dimension.entity.Image">
         SELECT di.*
         FROM dimension_image di
                  INNER JOIN dimension_tag_image_relation dtir ON di.id = dtir.image_id
                  INNER JOIN dimension_tag dt ON dtir.tag_id = dt.id
-        WHERE dt.name LIKE CONCAT('%',#{keyword}, '%')
-        ORDER BY di.score DESC
-            LIMIT #{pageNum},#{pageSize}
-
+        WHERE dt.name LIKE CONCAT('%',#{keyword}, '%') AND di.status = 1
+        ORDER BY di.score DESC LIMIT #{pageNum},#{pageSize}
     </select>
 
 <!--    <select id="getTagListWithCondition" resultType="com.dimension.entity.Tag">-->
@@ -163,14 +159,11 @@
         WHERE dt.name LIKE CONCAT('%',#{keyword}, '%')
 
     </select>
-    <!--    3.3 /GetImageListWithCategoryId => 获取某分类下的图片列表-->
-    <select id="getImageListWithCategoryId" resultType="com.dimension.entity.Image">
-        SELECT *
-        FROM dimension_image
-        WHERE category_id = #{categoryId}
-        ORDER BY score DESC
-            LIMIT #{pageNum}, #{pageSize}
 
+    <select id="getImageListWithCategoryId" resultType="com.dimension.entity.Image">
+        SELECT * FROM dimension_image
+        WHERE category_id = #{categoryId} AND status = 1
+        ORDER BY score DESC LIMIT #{pageNum}, #{pageSize}
     </select>
 
     <select id="getTagListWithCategoryId" resultType="com.dimension.entity.Tag">
@@ -226,4 +219,27 @@
     <update id="categoryCountDecrement">
         update dimension_image_category set count = count - 1 where id = #{categoryId}
     </update>
+
+    <select id="getUserImageList" resultType="com.dimension.entity.Image">
+        SELECT * FROM dimension_image WHERE user_id = #{userId} ORDER BY create_time DESC
+    </select>
+
+    <select id="getCategoryImageTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_image
+        WHERE category_id = #{categoryId} AND status = 1
+    </select>
+
+    <!-- 查询待审核的图片列表 -->
+    <select id="getPendingImageList" resultType="com.dimension.entity.Image">
+        SELECT * FROM dimension_image
+        WHERE status = 0
+        ORDER BY create_time ASC
+            LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <!-- 查询待审核图片的总数 -->
+    <select id="getPendingTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_image WHERE status = 0
+    </select>
+
 </mapper>

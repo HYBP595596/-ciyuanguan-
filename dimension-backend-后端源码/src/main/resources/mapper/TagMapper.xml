@@ -8,4 +8,13 @@
         select * from dimension_tag
     </select>
 
+    <select id="getTagByName" resultType="com.dimension.entity.Tag">
+        SELECT * FROM dimension_tag WHERE name = #{name} LIMIT 1
+    </select>
+
+    <insert id="insertTag" parameterType="com.dimension.entity.Tag" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_tag (name) VALUES (#{name})
+    </insert>
+
+
 </mapper>

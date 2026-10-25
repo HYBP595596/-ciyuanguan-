@@ -145,7 +145,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int updateUserCover(Long userId, String coverImage) {
-        return userMapper.updateUserCover(userId, coverImage);
+    public int updateUserCover(Long userId, String coverImage, Integer coverHeight) {
+        return userMapper.updateUserCover(userId, coverImage, coverHeight);
+    }
+
+    @Override
+    public int applyArtist(Long userId, String desc) {
+        return userMapper.applyArtist(userId, desc);
+    }
+
+    @Override
+    public List<User> getPendingArtists(Integer pageNum, Integer pageSize) {
+        return userMapper.getPendingArtists(pageNum, pageSize);
+    }
+
+    @Override
+    public long getPendingArtistTotal() {
+        return userMapper.getPendingArtistTotal();
+    }
+
+    @Override
+    public int auditArtist(Long userId, Integer status) {
+        return userMapper.auditArtist(userId, status);
     }
 }

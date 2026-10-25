@@ -203,7 +203,7 @@ export default {
     },
     goPublish() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
-      else this.$router.push('/image-management-add-image')
+      else this.$router.push('/publish')
     },
     goMessage() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }

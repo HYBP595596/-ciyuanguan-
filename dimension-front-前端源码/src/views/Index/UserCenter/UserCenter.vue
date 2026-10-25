@@ -1,10 +1,12 @@
 <template>
   <div class="uc-page">
     <!-- ============ 顶部用户信息 ============ -->
-    <!-- 替换掉原来的 background-image CSS，用 :style 动态绑定 -->
     <div class="uc-header" :style="getCoverStyle()">
       <div class="user-avatar">
-        <img :src="user.avatar" alt=""/>
+        <img v-if="user.avatar" :src="user.avatar" alt=""/>
+        <div v-else class="user-avatar-dummy">
+          {{ user.nickname ? user.nickname[0] : 'U' }}
+        </div>
       </div>
       <div class="user-info">
         <div class="user-nickname">{{ user.nickname }}</div>
@@ -30,19 +32,33 @@
           </div>
         </el-tab-pane>
 
+        <!-- 我的作品 -->
+        <el-tab-pane label="我的作品" name="myImagesTab" v-if="isSelf">
+          <el-empty v-if="myImageList && myImageList.length === 0" description="你还没有上传过作品哦"></el-empty>
+          <div class="grid-list" v-else>
+            <div class="grid-card" v-for="item in myImageList" :key="item.image.id">
+              <div class="grid-image" style="position: relative;" @click="clickMyImage(item.image)">
+                <img :src="item.image.url" alt=""/>
+                <div v-if="item.image.status === 0" style="position:absolute; top:5px; right:5px; background:orange; color:#fff; padding:2px 6px; border-radius:4px; font-size:12px;">待审核</div>
+                <div v-if="item.image.status === 2" style="position:absolute; top:5px; right:5px; background:red; color:#fff; padding:2px 6px; border-radius:4px; font-size:12px;">已驳回</div>
+              </div>
+              <div class="grid-stats">
+                <i class="el-icon-medal"></i><span>{{ item.image.score }}</span>
+                <i class="el-icon-star-off"></i><span>{{ item.image.collects }}</span>
+                <i class="el-icon-view"></i><span>{{ item.image.views }}</span>
+              </div>
+              <div class="grid-footer">
+                <span class="delete-btn" @click="deleteMyImage(item.image.id)">删除</span>
+              </div>
+            </div>
+          </div>
+        </el-tab-pane>
+
         <!-- 收藏 -->
         <el-tab-pane label="收藏" name="collectTab" v-if="isSelf">
-          <el-empty
-            v-if="imageTagBookmarkList && imageTagBookmarkList.length == 0"
-            :image-size="260"
-            description="快去收藏喜欢的图片吧~~~">
-          </el-empty>
-
+          <el-empty v-if="imageTagBookmarkList && imageTagBookmarkList.length == 0" :image-size="260" description="快去收藏喜欢的图片吧~~~"></el-empty>
           <div class="grid-list" v-else>
-            <div
-              class="grid-card"
-              v-for="(item, index) in imageTagBookmarkList"
-              :key="index">
+            <div class="grid-card" v-for="(item, index) in imageTagBookmarkList" :key="index">
               <div class="grid-image" @click="clickImage(item.image.id)">
                 <img :src="item.image.url" alt=""/>
               </div>
@@ -52,41 +68,25 @@
                 <i class="el-icon-view"></i><span>{{ item.image.views }}</span>
               </div>
               <div class="grid-tags">
-                <el-tag v-for="(tag, i) in item.tagList" :key="i" size="mini" type="danger">
-                  {{ tag.name }}
-                </el-tag>
+                <el-tag v-for="(tag, i) in item.tagList" :key="i" size="mini" type="danger">{{ tag.name }}</el-tag>
               </div>
               <div class="grid-footer">
                 <span class="collect-time">{{ format1(item.imageBookmark.createTime) }}</span>
-                <el-popconfirm
-                  @confirm="clickCollectDelete(item.image.id)"
-                  title="确认删除该收藏？">
+                <el-popconfirm @confirm="clickCollectDelete(item.image.id)" title="确认删除该收藏？">
                   <span slot="reference" class="delete-btn">✕</span>
                 </el-popconfirm>
               </div>
             </div>
           </div>
-
           <div class="pagination">
-            <el-pagination
-              background
-              :hide-on-single-page="collectHide"
-              :page-size="pageSize"
-              @current-change="handleCurrentChange"
-              :current-page="currentPage"
-              layout="prev, pager, next"
-              :total="total">
-            </el-pagination>
+            <el-pagination background :hide-on-single-page="collectHide" :page-size="pageSize" @current-change="handleCurrentChange" :current-page="currentPage" layout="prev, pager, next" :total="total"></el-pagination>
           </div>
         </el-tab-pane>
 
         <!-- 历史 -->
         <el-tab-pane label="历史" name="historyTab" class="history" v-if="isSelf">
           <div class="grid-list" v-if="imageTagHistoryCategoryList && imageTagHistoryCategoryList.length">
-            <div
-              class="grid-card"
-              v-for="(item, index) in imageTagHistoryCategoryList"
-              :key="index">
+            <div class="grid-card" v-for="(item, index) in imageTagHistoryCategoryList" :key="index">
               <div class="grid-time">{{ format1(item.watchHistory.createTime) }}</div>
               <div class="grid-image" @click="clickImage(item.image.id)">
                 <img :src="item.image.url" alt=""/>
@@ -97,9 +97,7 @@
                 <i class="el-icon-view"></i><span>{{ item.image.views }}</span>
               </div>
               <div class="grid-tags">
-                <el-tag v-for="(tag, i) in item.tagList" :key="i" size="mini" type="danger">
-                  {{ tag.name }}
-                </el-tag>
+                <el-tag v-for="(tag, i) in item.tagList" :key="i" size="mini" type="danger">{{ tag.name }}</el-tag>
               </div>
               <div class="grid-footer">
                 <el-tag size="mini">{{ item.category.name }}</el-tag>
@@ -107,19 +105,9 @@
               </div>
             </div>
           </div>
-
           <el-empty v-else description="暂无浏览历史"></el-empty>
-
           <div class="pagination">
-            <el-pagination
-              :hide-on-single-page="historyHide"
-              background
-              :page-size="historyPagination.pageSize"
-              @current-change="handleCurrentChangeHistory"
-              :current-page="historyPagination.currentPage"
-              layout="prev, pager, next"
-              :total="historyPagination.total">
-            </el-pagination>
+            <el-pagination :hide-on-single-page="historyHide" background :page-size="historyPagination.pageSize" @current-change="handleCurrentChangeHistory" :current-page="historyPagination.currentPage" layout="prev, pager, next" :total="historyPagination.total"></el-pagination>
           </div>
         </el-tab-pane>
 
@@ -130,13 +118,7 @@
             <el-tab-pane label="修改头像">
               <div class="avatar-update">
                 <div class="avatar-picker">
-                  <el-upload
-                      ref="avatarUpload"
-                      :before-upload="beforeUpload"
-                      :on-success="userAvatarUploadSuccess"
-                      :show-file-list="false"
-                      :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=avatar&userId=' + user.id"
-                      :limit="1">
+                  <el-upload ref="avatarUpload" :before-upload="beforeUpload" :on-success="userAvatarUploadSuccess" :show-file-list="false" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=avatar&userId=' + user.id" :limit="1">
                     <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
                   </el-upload>
                   <el-button type="primary" @click="updateUserAvatar">更新头像</el-button>
@@ -149,12 +131,7 @@
 
             <!-- 修改信息 -->
             <el-tab-pane label="修改信息" name="update-info-tab">
-              <el-form
-                :model="updateUserInfoForm"
-                :rules="updateUserInfoFormRules"
-                ref="updateUserInfoForm"
-                label-width="100px"
-                class="update-form">
+              <el-form :model="updateUserInfoForm" :rules="updateUserInfoFormRules" ref="updateUserInfoForm" label-width="100px" class="update-form">
                 <el-form-item label="昵称" prop="nickname">
                   <el-input v-model="updateUserInfoForm.nickname" placeholder="昵称"></el-input>
                 </el-form-item>
@@ -171,38 +148,33 @@
                 <el-form-item label="出生日期" prop="birthday">
                   <el-date-picker v-model="updateUserInfoForm.birthday" type="date" placeholder="选择日期" style="width: 100%"></el-date-picker>
                 </el-form-item>
+                <el-form-item label="画师认证">
+                  <el-tag v-if="user.artistStatus === 2" type="success" effect="dark">已认证画师</el-tag>
+                  <el-tag v-else-if="user.artistStatus === 1" type="warning">审核中，请耐心等待</el-tag>
+                  <el-tag v-else-if="user.artistStatus === 3" type="danger">已被驳回</el-tag>
+                  <el-button v-else type="primary" size="small" @click="applyArtistDialog = true">申请成为画师</el-button>
+                  <div v-if="user.artistStatus === 3 && user.artistApplyDesc" style="font-size:12px; color:#999; margin-top:5px;">驳回原因：{{ user.artistApplyDesc }}</div>
+                </el-form-item>
                 <el-form-item>
                   <el-button type="primary" style="width: 100%" @click="saveUserInfo">保存</el-button>
                 </el-form-item>
               </el-form>
             </el-tab-pane>
 
-            <!-- 修改背景图标签页 -->
+            <!-- 修改背景 -->
             <el-tab-pane label="修改背景">
               <div class="avatar-update">
                 <div class="avatar-picker">
-                  <el-upload
-                      ref="coverUpload"
-                      :before-upload="beforeUpload"
-                      :on-success="userCoverUploadSuccess"
-                      :show-file-list="false"
-                      :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=cover&userId=' + user.id"
-                      :limit="1">
+                  <el-upload ref="coverUpload" :before-upload="beforeUpload" :on-success="userCoverUploadSuccess" :show-file-list="false" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=cover&userId=' + user.id" :limit="1">
                     <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
                   </el-upload>
                   <el-button type="primary" @click="updateUserCover">更新背景</el-button>
                   <div style="margin-top: 20px;">
                     <span style="font-size: 14px; color: #666;">调整背景高度: {{ coverHeight }}px</span>
-                    <el-slider
-                        v-model="coverHeight"
-                        :min="150"
-                        :max="500"
-                        :step="10">
-                    </el-slider>
+                    <el-slider v-model="coverHeight" :min="150" :max="1000" :step="10"></el-slider>
                   </div>
                 </div>
                 <div class="avatar-preview">
-                  <!-- 预览区域，为了美观把背景图按比例显示 -->
                   <img :src="selectCover" alt="" style="width: 300px; height: 150px; border-radius: 8px; object-fit: cover;" />
                 </div>
               </div>
@@ -210,30 +182,30 @@
 
             <!-- 修改密码 -->
             <el-tab-pane label="修改密码">
-              <el-form
-                :model="updatePasswordForm"
-                :rules="updatePasswordFormRules"
-                ref="updatePasswordForm"
-                label-width="100px"
-                class="update-form">
-                <el-form-item label="原密码" prop="originPassword">
-                  <el-input v-model="updatePasswordForm.originPassword" placeholder="原密码"></el-input>
-                </el-form-item>
-                <el-form-item label="新密码" prop="newPassword">
-                  <el-input v-model="updatePasswordForm.newPassword" placeholder="新密码"></el-input>
-                </el-form-item>
-                <el-form-item label="确认密码" prop="confirmNewPassword">
-                  <el-input v-model="updatePasswordForm.confirmNewPassword" placeholder="确认密码"></el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" style="width: 100%" @click="updatePassword">保存</el-button>
-                </el-form-item>
+              <el-form :model="updatePasswordForm" :rules="updatePasswordFormRules" ref="updatePasswordForm" label-width="100px" class="update-form">
+                <el-form-item label="原密码" prop="originPassword"><el-input v-model="updatePasswordForm.originPassword" placeholder="原密码"></el-input></el-form-item>
+                <el-form-item label="新密码" prop="newPassword"><el-input v-model="updatePasswordForm.newPassword" placeholder="新密码"></el-input></el-form-item>
+                <el-form-item label="确认密码" prop="confirmNewPassword"><el-input v-model="updatePasswordForm.confirmNewPassword" placeholder="确认密码"></el-input></el-form-item>
+                <el-form-item><el-button type="primary" style="width: 100%" @click="updatePassword">保存</el-button></el-form-item>
               </el-form>
             </el-tab-pane>
           </el-tabs>
         </el-tab-pane>
       </el-tabs>
     </div>
+
+    <!-- 🚨 申请画师弹窗（移到了 uc-page 内部） -->
+    <el-dialog title="申请成为画师" :visible.sync="applyArtistDialog" width="500px">
+      <el-form :model="applyForm">
+        <el-form-item label="申请说明/个人简介">
+          <el-input type="textarea" :rows="4" v-model="applyForm.desc" placeholder="请简单介绍自己的擅长画风、过往作品经验等..."></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="applyArtistDialog = false">取消</el-button>
+        <el-button type="primary" @click="submitApply">提交申请</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -248,6 +220,7 @@ export default {
       historyHide: false,
       activeUserTabName: "infoTab",
       user: {},
+      myImageList: [], // 👈 我的作品列表
       imageTagBookmarkList: [],
       historyPagination: { currentPage: 1, pageSize: 8, total: 0 },
       pageSize: 8,
@@ -255,9 +228,7 @@ export default {
       total: 0,
       selectImage: '',
       updateUserInfoForm: { nickname: '', description: '', sex: '2', birthday: '' },
-      updateUserInfoFormRules: {
-        nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }]
-      },
+      updateUserInfoFormRules: { nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }] },
       updatePasswordForm: { originPassword: '', newPassword: '', confirmNewPassword: '' },
       updatePasswordFormRules: {
         originPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
@@ -265,13 +236,16 @@ export default {
         confirmNewPassword: [{ required: true, message: '请输入确认密码', trigger: 'blur' }]
       },
       imageTagHistoryCategoryList: [],
-      isSelf: true, // 是否是当前登录用户自己的主页
-      selectCover: '', // 用于预览要更新的背景
+      isSelf: true,
+      selectCover: '',
       coverHeight: 260,
+
+      // 🚨 画师申请弹窗的状态
+      applyArtistDialog: false,
+      applyForm: { desc: '' }
     }
   },
   mounted() {
-    console.log('刷新了')
     const loginUserStr = sessionStorage.getItem('user');
     if (!loginUserStr) {
       this.$router.push('/index-body');
@@ -279,25 +253,21 @@ export default {
     }
 
     const loginUser = JSON.parse(loginUserStr);
-    const targetUserId = this.$route.query.userId; // 看看路由里有没有带别人的 userId
+    const targetUserId = this.$route.query.userId;
 
     if (targetUserId && String(targetUserId) !== String(loginUser.id)) {
-      // 看别人主页
       this.isSelf = false;
       this.user = {};
       this.getTargetUserInfo(targetUserId);
     } else {
-      // 👇 修改这里：看自己主页时，不要去读缓存，直接去后端请求最新数据！
       this.isSelf = true;
-      this.user = loginUser; // 先用缓存垫底，防止页面闪烁
+      this.user = loginUser;
       this.selectImage = this.user.avatar;
-      this.getTargetUserInfo(loginUser.id); // 👈 调用请求接口的方法拿最新数据
+      this.getTargetUserInfo(loginUser.id);
       this.handleRouter();
     }
 
-    // 初始化背景高度，如果缓存里有就用缓存的，没有就默认 220
     this.coverHeight = Number(sessionStorage.getItem('coverHeight')) || 220;
-
     if (this.isSelf) {
       this.selectCover = this.user.coverImage || '';
     }
@@ -306,9 +276,7 @@ export default {
     format1(t) { return format1(t) },
     format2(t) { return format2(t) },
 
-    beforeUpload() {
-      this.$message.info('正在上传中，请稍等...')
-    },
+    beforeUpload() { this.$message.info('正在上传中，请稍等...') },
 
     clickUpdate(tab) {
       if (tab.name == 'update-info-tab') {
@@ -316,44 +284,92 @@ export default {
       }
     },
 
-    handleCurrentChangeHistory(newPage) {
-      this.historyPagination.currentPage = newPage
-      this.getHistory()
+    // 获取用户信息
+    getTargetUserInfo(userId) {
+      this.request.get(`GetUserInfo?userId=${userId}`).then(res => {
+        this.user = res.user || res;
+        this.selectImage = this.user.avatar;
+        if (this.isSelf) {
+          this.selectCover = this.user.coverImage || '';
+        }
+        if (!this.isSelf) this.activeUserTabName = 'infoTab';
+      }).catch(() => {
+        this.$message.error('获取用户信息失败');
+        this.$router.push('/index-body');
+      });
     },
 
-    clickHistoryDelete(id) {
-      this.request.post(`RemoveWatchHistoryById?id=${id}`).then(() => {
-        this.$message.success('删除成功')
-        this.getHistory()
+    // 🚨 提交画师申请
+    submitApply() {
+      if (!this.applyForm.desc) return this.$message.warning('请填写申请说明');
+      this.request.post(`ApplyArtist?userId=${this.user.id}&desc=${this.applyForm.desc}`).then(res => {
+        if (res.flag === 0) {
+          this.$message.success('申请已提交，请等待审核');
+          this.applyArtistDialog = false;
+          // 重新获取信息刷新页面
+          this.getTargetUserInfo(this.user.id);
+        }
       })
     },
 
+    // 🚨 我的作品逻辑
+    getMyImages() {
+      if (!this.user.id) return;
+      this.request.get(`GetUserImageList?userId=${this.user.id}`).then(res => {
+        if (res.flag === 0) {
+          this.myImageList = res.imageList;
+        }
+      });
+    },
+    deleteMyImage(imageId) {
+      this.$confirm('确认删除这张作品吗？', '提示', { type: 'warning' }).then(() => {
+        this.request.post(`RemoveImageById?imageId=${imageId}`).then(() => {
+          this.$message.success('删除成功');
+          this.getMyImages();
+        });
+      });
+    },
+    clickMyImage(image) {
+      if (image.status === 0) return this.$message.warning('该作品正在审核中，暂不能查看详情');
+      if (image.status === 2) return this.$message.error('该作品已被驳回，请修改后重新上传');
+      this.$router.push({ path: '/image-detail', query: { imageId: image.id } });
+    },
+
+    // 背景图获取样式
+    getCoverStyle() {
+      let styleObj = { height: this.coverHeight + 'px' };
+      if (this.user && this.user.coverImage) {
+        styleObj.backgroundImage = `url("${this.user.coverImage}")`;
+        styleObj.backgroundSize = 'cover';
+        styleObj.backgroundPosition = 'center';
+        styleObj.backgroundRepeat = 'no-repeat';
+        styleObj.border = 'none';
+      } else {
+        styleObj.backgroundImage = 'none';
+        styleObj.backgroundColor = 'var(--bg-hover)';
+        styleObj.border = '1px solid var(--border-color)';
+      }
+      return styleObj;
+    },
+
+    // 其他保留的方法...
+    handleCurrentChangeHistory(newPage) { this.historyPagination.currentPage = newPage; this.getHistory(); },
+    clickHistoryDelete(id) { this.request.post(`RemoveWatchHistoryById?id=${id}`).then(() => { this.$message.success('删除成功'); this.getHistory(); }) },
     updatePassword() {
       this.$refs['updatePasswordForm'].validate(valid => {
         if (!valid) return
-        if (this.updatePasswordForm.newPassword != this.updatePasswordForm.confirmNewPassword) {
-          this.$message.error('两次输入密码不一致')
-          return
-        }
-        if (this.updatePasswordForm.originPassword != this.user.password) {
-          this.$message.error('密码错误')
-          return
-        }
+        if (this.updatePasswordForm.newPassword != this.updatePasswordForm.confirmNewPassword) return this.$message.error('两次输入密码不一致')
+        if (this.updatePasswordForm.originPassword != this.user.password) return this.$message.error('密码错误')
         this.request.post(`UpdateUserPassword?userId=${this.user.id}&password=${this.updatePasswordForm.newPassword}`).then(() => {
           this.$message.success({ message: '修改成功，请重新登录', duration: 1000 })
-          setTimeout(() => {
-            sessionStorage.clear()
-            this.event.$emit('popLoginForm')
-          }, 1000)
+          setTimeout(() => { sessionStorage.clear(); this.event.$emit('popLoginForm') }, 1000)
         })
       })
     },
-
     saveUserInfo() {
       this.$refs['updateUserInfoForm'].validate(valid => {
         if (!valid) return
-        this.updateUserInfoForm.birthday = new Date(this.updateUserInfoForm.birthday)
-          .toLocaleDateString().replace(/\//g, "-")
+        this.updateUserInfoForm.birthday = new Date(this.updateUserInfoForm.birthday).toLocaleDateString().replace(/\//g, "-")
         this.request.post(`UpdateUserInfo`, { ...this.updateUserInfoForm, userId: this.user.id }).then(() => {
           this.user.nickname = this.updateUserInfoForm.nickname
           this.user.description = this.updateUserInfoForm.description
@@ -365,158 +381,62 @@ export default {
         })
       })
     },
-
-    // 1. 修改头像的方法
     updateUserAvatar() {
       const safeAvatar = encodeURIComponent(this.selectImage);
-      this.request.post(`UpdateUserAvatar?userId=${this.user.id}&avatar=${this.selectImage}`).then(res => {
+      this.request.post(`UpdateUserAvatar?userId=${this.user.id}&avatar=${safeAvatar}`).then(() => {
         this.user.avatar = this.selectImage;
         sessionStorage.setItem('user', JSON.stringify(this.user));
-
         this.event.$emit('user-info-updated', this.user);
-
         this.$message.success('头像更新成功！');
       })
     },
-    userAvatarUploadSuccess(res) {
-      this.$message.success('上传成功')
-      this.selectImage = res.url
-
-      this.$refs.avatarUpload.clearFiles()
-    },
-
-    handleCurrentChange(currentPage) {
-      this.currentPage = currentPage
-      this.getImageBookmarkList()
-    },
-
+    userAvatarUploadSuccess(res) { this.$message.success('上传成功'); this.selectImage = res.url; this.$refs.avatarUpload.clearFiles() },
+    handleCurrentChange(currentPage) { this.currentPage = currentPage; this.getImageBookmarkList() },
     clickCollectDelete(imageId) {
-      this.request.post(`RemoveImageBookmark?imageId=${imageId}&userId=${this.user.id}`).then(() => {
-        this.$message.success('删除成功')
-        this.getImageBookmarkList()
-      })
+      this.request.post(`RemoveImageBookmark?imageId=${imageId}&userId=${this.user.id}`).then(() => { this.$message.success('删除成功'); this.getImageBookmarkList() })
     },
-
-    clickImage(imageId) {
-      this.$router.push({
-        path: '/image-detail',
-        query: { imageId, highlightCategoryId: '-1' }
-      })
-    },
-
+    clickImage(imageId) { this.$router.push({ path: '/image-detail', query: { imageId, highlightCategoryId: '-1' } }) },
     getImageBookmarkList() {
       this.request.get(`GetUserImageBookmarkList?userId=${this.user.id}&currentPage=${this.currentPage}&pageSize=${this.pageSize}`).then(res => {
         this.imageTagBookmarkList = res.imageTagBookmarkList
-        if (this.imageTagBookmarkList && this.imageTagBookmarkList.length <= 8) {
-          this.collectHide = true
-        }
+        if (this.imageTagBookmarkList && this.imageTagBookmarkList.length <= 8) this.collectHide = true
         this.total = res.total
       })
     },
-
     clickTab(tab) {
       if (tab.name == 'collectTab') {
-        if (!this.imageTagBookmarkList || this.imageTagBookmarkList.length == 0) {
-          this.currentPage = 1
-          this.getImageBookmarkList()
-        }
+        if (!this.imageTagBookmarkList || this.imageTagBookmarkList.length == 0) { this.currentPage = 1; this.getImageBookmarkList() }
       } else if (tab.name == 'historyTab') {
-        this.historyPagination.currentPage = 1
-        this.imageTagHistoryCategoryList = []
-        this.getHistory()
+        this.historyPagination.currentPage = 1; this.imageTagHistoryCategoryList = []; this.getHistory()
+      } else if (tab.name == 'myImagesTab') {
+        this.getMyImages()
       }
     },
-
     handleRouter() {
       const activeUserTabName = this.$route.query.activeUserTabName
       if (activeUserTabName) this.activeUserTabName = activeUserTabName
       if (activeUserTabName == 'collectTab') this.getImageBookmarkList()
       else if (activeUserTabName == 'historyTab') this.getHistory()
+      else if (activeUserTabName == 'myImagesTab') this.getMyImages()
     },
-
     getHistory() {
       this.request.get(`GetUserWatchHistory?userId=${this.user.id}&currentPage=${this.historyPagination.currentPage}&pageSize=${this.historyPagination.pageSize}`).then(res => {
         this.imageTagHistoryCategoryList = res.imageTagHistoryCategoryList
-        if (this.imageTagHistoryCategoryList && this.imageTagHistoryCategoryList.length <= 8) {
-          this.historyHide = true
-        }
+        if (this.imageTagHistoryCategoryList && this.imageTagHistoryCategoryList.length <= 8) this.historyHide = true
         this.historyPagination.total = res.total
       })
     },
-
-    // 获取其他人的信息
-    getTargetUserInfo(userId) {
-      this.request.get(`GetUserInfo?userId=${userId}`).then(res => {
-        console.log("【后端返回的完整数据】:", res);
-
-        // 1. 拿到数据
-        this.user = res.user || res;
-
-        // 2. 同步所有预览图（头像、背景）
-        this.selectImage = this.user.avatar;
-        if (this.isSelf) {
-          this.selectCover = this.user.coverImage || '';
-        }
-
-        // 3. 只有在看“别人”的主页时，才强制切回“个人信息”标签
-        // 如果是看自己的，就保持在你当前按 F5 时的标签页，不乱跳！
-        if (!this.isSelf) {
-          this.activeUserTabName = 'infoTab';
-        }
-      }).catch(err => {
-        this.$message.error('获取用户信息失败');
-        this.$router.push('/index-body');
-      });
-    },
-    // 动态获取背景图
-    getCoverStyle() {
-      // 1. 定义公共高度样式（无论有没有背景图，高度都跟着滑块走）
-      let styleObj = {
-        height: this.coverHeight + 'px'
-      };
-
-      // 2. 如果有自定义背景图
-      if (this.user && this.user.coverImage) {
-        styleObj.backgroundImage = `url("${this.user.coverImage}")`;
-        styleObj.backgroundSize = 'cover';
-        styleObj.backgroundPosition = 'center';
-        styleObj.backgroundRepeat = 'no-repeat';
-        // 如果有背景图，去掉边框，保持美观
-        styleObj.border = 'none';
-      }
-      // 3. 如果没有设置背景图，返回空白/纯色
-      else {
-        styleObj.backgroundImage = 'none';
-        styleObj.backgroundColor = 'var(--bg-hover)';
-        styleObj.border = '1px solid var(--border-color)';
-      }
-
-      return styleObj;
-    },
-
-    // 背景图上传成功
-    userCoverUploadSuccess(res) {
-      this.$message.success('背景上传成功，请点击更新背景');
-      this.selectCover = res.url;
-
-      this.$refs.coverUpload.clearFiles()
-    },
-
-    // 2. 修改背景的方法
+    userCoverUploadSuccess(res) { this.$message.success('背景上传成功，请点击更新背景'); this.selectCover = res.url; this.$refs.coverUpload.clearFiles() },
     updateUserCover() {
       const safeCover = encodeURIComponent(this.selectCover);
-      this.request.post(`UpdateUserCover?userId=${this.user.id}&coverImage=${this.selectCover}`).then(res => {
+      this.request.post(`UpdateUserCover?userId=${this.user.id}&coverImage=${safeCover}&coverHeight=${this.coverHeight}`).then(() => {
         this.user.coverImage = this.selectCover;
         sessionStorage.setItem('user', JSON.stringify(this.user));
-
         sessionStorage.setItem('coverHeight', this.coverHeight);
         this.event.$emit('user-info-updated', this.user);
-
         this.$message.success('背景更新成功！');
       });
-    },
-
-
+    }
   }
 }
 </script>
