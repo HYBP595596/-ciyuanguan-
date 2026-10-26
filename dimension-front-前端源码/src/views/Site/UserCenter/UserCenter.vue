@@ -141,12 +141,32 @@
         <!-- 关注 -->
         <el-tab-pane label="关注" name="followingTab">
           <el-empty v-if="!followingList.length" description="还没有关注任何人"></el-empty>
-          <div class="uc-user-grid" v-else>
-            <div class="uc-user-card" v-for="u in followingList" :key="u.id" @click="clickUserCenter(u.id)">
-              <img v-if="u.avatar" :src="u.avatar" alt=""/>
-              <div v-else class="uc-user-dummy">{{ u.nickname ? u.nickname[0] : 'U' }}</div>
-              <div class="uc-user-name">{{ u.nickname }}</div>
-              <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+          <div class="uc-user-list" v-else>
+            <div class="uc-user-row" v-for="u in followingList" :key="'f' + u.id">
+              <img v-if="u.avatar" class="uc-user-row-avatar" :src="u.avatar" alt=""
+                   @click="clickUserCenter(u.id)"/>
+              <div v-else class="uc-user-row-avatar uc-user-row-dummy" @click="clickUserCenter(u.id)">
+                {{ u.nickname ? u.nickname[0] : 'U' }}
+              </div>
+              <div class="uc-user-row-main">
+                <div class="uc-user-row-name" @click="clickUserCenter(u.id)">
+                  {{ u.nickname || ('用户' + u.id) }}
+                  <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+                </div>
+                <div class="uc-user-row-bio" :title="u.description">
+                  {{ u.description || '这个人很神秘，还没有写简介' }}
+                </div>
+              </div>
+              <div class="uc-user-row-actions" v-if="me.id && u.id !== me.id">
+                <el-button
+                    :type="isFollowingUser(u) ? 'info' : 'primary'"
+                    size="small"
+                    round
+                    @click="toggleFollowUser(u)">
+                  {{ isFollowingUser(u) ? '已关注' : '关注' }}
+                </el-button>
+                <el-button size="small" round icon="el-icon-chat-dot-round" @click="openChatTo(u.id)">私信</el-button>
+              </div>
             </div>
           </div>
         </el-tab-pane>
@@ -154,12 +174,32 @@
         <!-- 粉丝 -->
         <el-tab-pane label="粉丝" name="fansTab">
           <el-empty v-if="!fansList.length" description="还没有粉丝"></el-empty>
-          <div class="uc-user-grid" v-else>
-            <div class="uc-user-card" v-for="u in fansList" :key="u.id" @click="clickUserCenter(u.id)">
-              <img v-if="u.avatar" :src="u.avatar" alt=""/>
-              <div v-else class="uc-user-dummy">{{ u.nickname ? u.nickname[0] : 'U' }}</div>
-              <div class="uc-user-name">{{ u.nickname }}</div>
-              <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+          <div class="uc-user-list" v-else>
+            <div class="uc-user-row" v-for="u in fansList" :key="'d' + u.id">
+              <img v-if="u.avatar" class="uc-user-row-avatar" :src="u.avatar" alt=""
+                   @click="clickUserCenter(u.id)"/>
+              <div v-else class="uc-user-row-avatar uc-user-row-dummy" @click="clickUserCenter(u.id)">
+                {{ u.nickname ? u.nickname[0] : 'U' }}
+              </div>
+              <div class="uc-user-row-main">
+                <div class="uc-user-row-name" @click="clickUserCenter(u.id)">
+                  {{ u.nickname || ('用户' + u.id) }}
+                  <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+                </div>
+                <div class="uc-user-row-bio" :title="u.description">
+                  {{ u.description || '这个人很神秘，还没有写简介' }}
+                </div>
+              </div>
+              <div class="uc-user-row-actions" v-if="me.id && u.id !== me.id">
+                <el-button
+                    :type="isFollowingUser(u) ? 'info' : 'primary'"
+                    size="small"
+                    round
+                    @click="toggleFollowUser(u)">
+                  {{ isFollowingUser(u) ? '已关注' : '关注' }}
+                </el-button>
+                <el-button size="small" round icon="el-icon-chat-dot-round" @click="openChatTo(u.id)">私信</el-button>
+              </div>
             </div>
           </div>
         </el-tab-pane>
@@ -327,6 +367,10 @@ export default {
       editCategoryList: [],
       editTagList: [],
       isSelf: true,
+      // 当前登录用户（关注按钮要判断"不能关注自己"）
+      me: {},
+      // 我关注了谁：给关注/粉丝列表里的按钮提供"已关注"状态
+      myFollowingIds: [],
       // 关注/粉丝联动展示
       followingCount: 0,
       fansCount: 0,
@@ -341,35 +385,17 @@ export default {
     }
   },
   mounted() {
-    const loginUserStr = sessionStorage.getItem('user');
-    if (!loginUserStr) {
-      this.$router.push('/index-body');
-      return;
+    this.initFromRoute()
+  },
+  watch: {
+    // 组件被复用时的路由变化：同一个页面里从"关注"切到"粉丝"、
+    // 或从关注列表点进另一个人的主页，都必须重新按新参数加载
+    $route(to, from) {
+      if (to.path !== from.path) return
+      const changed = to.query.userId !== from.query.userId ||
+          to.query.activeUserTabName !== from.query.activeUserTabName
+      if (changed) this.initFromRoute()
     }
-
-    const loginUser = JSON.parse(loginUserStr);
-    const targetUserId = this.$route.query.userId;
-    let profileId = loginUser.id;
-
-    if (targetUserId && String(targetUserId) !== String(loginUser.id)) {
-      this.isSelf = false;
-      this.user = {};
-      this.getTargetUserInfo(targetUserId);
-      profileId = targetUserId;
-    } else {
-      this.isSelf = true;
-      this.user = loginUser;
-      this.selectImage = this.user.avatar;
-      this.getTargetUserInfo(loginUser.id);
-      this.handleRouter();
-    }
-
-    this.coverHeight = Number(sessionStorage.getItem('coverHeight')) || 220;
-    if (this.isSelf) {
-      this.selectCover = this.user.coverImage || '';
-    }
-    // 关注/粉丝联动数据（自己或他人主页都展示）
-    this.loadFollowData(profileId)
   },
   computed: {
     // el-upload 直传不经过 axios 拦截器，必须自己带上登录凭证
@@ -383,6 +409,80 @@ export default {
     }
   },
   methods: {
+    // 按路由参数初始化/重新初始化（进入页面、切 tab、切换查看的用户都会走这里）
+    initFromRoute() {
+      const loginUserStr = sessionStorage.getItem('user')
+      if (!loginUserStr) {
+        this.$router.push('/index-body')
+        return
+      }
+      const loginUser = JSON.parse(loginUserStr)
+      this.me = loginUser
+
+      const targetUserId = this.$route.query.userId
+      let profileId = loginUser.id
+
+      if (targetUserId && String(targetUserId) !== String(loginUser.id)) {
+        this.isSelf = false
+        this.user = {}
+        this.selectImage = ''
+        this.selectCover = ''
+        this.getTargetUserInfo(targetUserId)
+        profileId = targetUserId
+      } else {
+        this.isSelf = true
+        this.user = loginUser
+        this.selectImage = this.user.avatar
+        this.selectCover = this.user.coverImage || ''
+        this.getTargetUserInfo(loginUser.id)
+      }
+
+      this.coverHeight = Number(sessionStorage.getItem('coverHeight')) || 220
+      // tab 名称由路由决定：侧栏点"關注列表/粉絲列表"、页面里点关注数都会改 query
+      const tab = this.$route.query.activeUserTabName
+      this.activeUserTabName = tab || 'infoTab'
+
+      this.loadMyFollowingIds()
+      this.loadFollowData(profileId)
+      this.handleRouter()
+    },
+    // 我关注了谁（列表里按钮显示"已关注"的依据）
+    loadMyFollowingIds() {
+      if (!this.me || !this.me.id) return
+      this.request.get(`Follow?action=following&userId=${this.me.id}`).then(res => {
+        const list = (res && res.userList) || []
+        this.myFollowingIds = list.map(u => u.id)
+      }).catch(() => {})
+    },
+    isFollowingUser(u) {
+      return this.myFollowingIds.indexOf(u.id) > -1
+    },
+    // 关注 / 取消关注（与作品详情页同一套接口与按钮样式）
+    toggleFollowUser(u) {
+      if (!this.me || !this.me.id) {
+        this.$message.warning('请先登录')
+        this.event && this.event.$emit('popLoginForm')
+        return
+      }
+      const following = this.isFollowingUser(u)
+      const url = following ? 'UnfollowUser' : 'FollowUser'
+      this.request.post(`${url}?userId=${this.me.id}&targetUserId=${u.id}`).then(() => {
+        this.myFollowingIds = following
+            ? this.myFollowingIds.filter(id => id !== u.id)
+            : this.myFollowingIds.concat(u.id)
+        this.event && this.event.$emit('follow-changed')
+        // 刷新人数与两个列表（取消关注后该用户会从"关注"列表消失）
+        this.loadFollowData(this.isSelf ? this.me.id : Number(this.$route.query.userId))
+        this.$message.success(following ? '已取消关注' : '关注成功')
+      })
+    },
+    openChatTo(userId) {
+      if (!this.me || !this.me.id) {
+        this.$message.warning('请先登录')
+        return
+      }
+      this.$router.push({ path: '/messages', query: { peerId: userId } })
+    },
     // 加载关注数、粉丝数以及两个列表
     loadFollowData(userId) {
       if (!userId) return
@@ -398,10 +498,14 @@ export default {
       })
     },
     switchTab(name) {
+      // 同步进路由，刷新/前进后退时都能停在正确的 tab
+      const query = Object.assign({}, this.$route.query, { activeUserTabName: name })
+      this.$router.replace({ path: '/user-center', query })
       this.activeUserTabName = name
     },
     clickUserCenter(userId) {
-      this.$router.push({ path: '/user-center', query: { userId } })
+      // 点列表里的用户：换成查看那个人的主页
+      this.$router.push({ path: '/user-center', query: { userId, activeUserTabName: 'infoTab' } })
     },
     format1(t) { return format1(t) },
     format2(t) { return format2(t) },
@@ -439,7 +543,12 @@ export default {
           this.coverHeight = this.user.coverHeight;
           sessionStorage.setItem('coverHeight', this.coverHeight);
         }
-        if (!this.isSelf) this.activeUserTabName = 'infoTab';
+        // 别人的主页没有"修改信息/我的作品/收藏/历史"这些自助 tab，落到个人信息；
+        // 但"关注/粉丝"是所有主页都有的 tab，不能被强行改回去
+        if (!this.isSelf &&
+            ['updateTab', 'myImagesTab', 'collectTab', 'historyTab'].indexOf(this.activeUserTabName) > -1) {
+          this.activeUserTabName = 'infoTab';
+        }
       }).catch(() => {
         this.$message.error('获取用户信息失败');
         this.$router.push('/index-body');

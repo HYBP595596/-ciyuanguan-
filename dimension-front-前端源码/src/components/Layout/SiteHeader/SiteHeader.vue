@@ -255,11 +255,11 @@ export default {
     },
     goMessage() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
-      else this.$router.push({ path: '/inbox', query: { tab: 'message' } })
+      else this.$router.push('/inbox')
     },
     goNotification() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
-      else this.$router.push({ path: '/inbox', query: { tab: 'notice' } })
+      else this.$router.push('/notifications')
     },
     // 顶部两个角标：消息（私信+评论回复+@提及）、通知（公告+作品更新）
     loadInbox() {

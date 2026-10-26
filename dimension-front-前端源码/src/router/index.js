@@ -50,10 +50,16 @@ const routes = [
         component: () => import('@/views/Community/Notice/NoticeList')
       },
       {
-        // 消息中心：消息（私信/评论回复/@提及）+ 通知（公告/作品更新）
+        // 消息：私信提醒、评论回复、@提及（与"通知"分开成两个页面）
         path: '/inbox',
         name: 'inbox',
-        component: () => import('@/views/Community/Inbox/InboxPage')
+        component: () => import('@/views/Community/Inbox/MessageInbox')
+      },
+      {
+        // 通知：系统公告、关注画师的作品更新、活动推送
+        path: '/notifications',
+        name: 'notifications',
+        component: () => import('@/views/Community/Inbox/NoticeInbox')
       }
     ]
   },
