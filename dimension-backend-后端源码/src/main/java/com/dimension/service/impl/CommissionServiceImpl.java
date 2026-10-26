@@ -1,5 +1,6 @@
 package com.dimension.service.impl;
 
+import com.dimension.config.PlatformConfig;
 import com.dimension.entity.CommissionOrder;
 import com.dimension.entity.CommissionPlan;
 import com.dimension.entity.Transaction;
@@ -9,7 +10,9 @@ import com.dimension.service.CommissionService;
 import com.dimension.utils.SessionUtil;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CommissionServiceImpl implements CommissionService {
@@ -151,78 +154,118 @@ public class CommissionServiceImpl implements CommissionService {
         return mapper.getOrderByNo(orderNo);
     }
 
+    // ==================== 状态流转（全部走事务） ====================
+
     @Override
     public boolean paySuccess(String orderNo, String transactionId) {
-        CommissionOrder order = mapper.getOrderByNo(orderNo);
-        if (order == null) {
-            return false;
-        }
-        // 幂等：已经支付过就直接返回成功
-        if (order.getStatus() != null && order.getStatus() >= 1) {
-            return true;
-        }
-        mapper.updateOrderStatusByOrderNo(orderNo, 1); // 绘制中（资金托管）
-        mapper.updateTransactionId(orderNo, transactionId);
-
-        Transaction pay = new Transaction();
-        pay.setOrderNo(orderNo);
-        pay.setBuyerId(order.getBuyerId());
-        pay.setArtistId(order.getArtistId());
-        pay.setAmount(order.getAmount());
-        pay.setType("PAY");
-        pay.setTransactionId(transactionId);
-        mapper.insertTransaction(pay);
-
-        mapper.insertOrderLogByOrderNo(orderNo, order.getBuyerId(), "PAY_SUCCESS");
-        return true;
+        return Boolean.TRUE.equals(SessionUtil.inTransaction(session ->
+                CommissionTxOps.paySuccess(session, orderNo, transactionId)));
     }
 
     @Override
     public boolean confirmOrder(Long buyerId, Long orderId) {
-        CommissionOrder order = mapper.getOrderById(orderId);
-        if (order == null || !buyerId.equals(order.getBuyerId())) {
-            return false;
-        }
-        if (order.getStatus() == null || order.getStatus() != 2) {
-            return false; // 只有「待验收」可以确认
-        }
-        mapper.updateOrderStatus(orderId, 3); // 已完成
-        mapper.insertOrderLog(orderId, buyerId, "CONFIRM_COMPLETE");
+        return confirmOrderWithSettlement(buyerId, orderId) != null;
+    }
 
-        Transaction income = new Transaction();
-        income.setOrderNo(order.getOrderNo());
-        income.setBuyerId(order.getBuyerId());
-        income.setArtistId(order.getArtistId());
-        income.setAmount(order.getAmount());
-        income.setType("INCOME");
-        income.setTransactionId(order.getTransactionId());
-        mapper.insertTransaction(income);
-        return true;
+    @Override
+    public Map<String, Object> confirmOrderWithSettlement(Long buyerId, Long orderId) {
+        return SessionUtil.inTransaction(session -> {
+            CommissionMapper cm = session.getMapper(CommissionMapper.class);
+            CommissionOrder order = cm.getOrderByIdForUpdate(orderId);
+            if (order == null || !buyerId.equals(order.getBuyerId())) {
+                return null;
+            }
+            if (order.getStatus() == null || order.getStatus() != 2) {
+                return null; // 只有「待验收」可以确认
+            }
+            BigDecimal[] settlement = CommissionTxOps.confirmComplete(session, order, buyerId);
+            if (settlement == null) {
+                return null;
+            }
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("amount", settlement[0]);
+            result.put("platformFee", settlement[1]);
+            result.put("artistIncome", settlement[2]);
+            return result;
+        });
     }
 
     @Override
     public boolean refundOrder(String orderNo, Long operatorId) {
-        CommissionOrder order = mapper.getOrderByNo(orderNo);
-        if (order == null || order.getStatus() == null) {
-            return false;
-        }
-        // 只有「绘制中」(已付款、未交付) 才允许退款；待支付无需退款，已交付走验收
-        if (order.getStatus() != 1) {
-            return false;
-        }
-        mapper.updateOrderStatusByOrderNo(orderNo, 4); // 4 = 已退款
-        mapper.insertOrderLogByOrderNo(orderNo,
-                operatorId == null ? order.getBuyerId() : operatorId, "REFUND_SUCCESS");
+        return refund(orderNo, operatorId, false);
+    }
 
-        Transaction refund = new Transaction();
-        refund.setOrderNo(orderNo);
-        refund.setBuyerId(order.getBuyerId());
-        refund.setArtistId(order.getArtistId());
-        refund.setAmount(order.getAmount());
-        refund.setType("REFUND");
-        refund.setTransactionId(order.getTransactionId());
-        mapper.insertTransaction(refund);
-        return true;
+    @Override
+    public boolean refundOrderByAdmin(String orderNo, Long adminId) {
+        return refund(orderNo, adminId, true);
+    }
+
+    private boolean refund(String orderNo, Long operatorId, boolean allowDelivered) {
+        return Boolean.TRUE.equals(SessionUtil.inTransaction(session -> {
+            CommissionMapper cm = session.getMapper(CommissionMapper.class);
+            CommissionOrder order = cm.getOrderByNoForUpdate(orderNo);
+            if (order == null) {
+                return false;
+            }
+            return CommissionTxOps.refund(session, order, operatorId, allowDelivered);
+        }));
+    }
+
+    @Override
+    public boolean cancelOrder(Long buyerId, Long orderId) {
+        return Boolean.TRUE.equals(SessionUtil.inTransaction(session -> {
+            CommissionMapper cm = session.getMapper(CommissionMapper.class);
+            CommissionOrder order = cm.getOrderByIdForUpdate(orderId);
+            if (order == null || !buyerId.equals(order.getBuyerId())) {
+                return false;
+            }
+            if (order.getStatus() == null || order.getStatus() != 0) {
+                return false; // 只有待支付能取消
+            }
+            return CommissionTxOps.closeOrder(session, order, buyerId, "CANCEL_ORDER");
+        }));
+    }
+
+    @Override
+    public boolean closeOrderByAdmin(Long orderId, Long adminId) {
+        return Boolean.TRUE.equals(SessionUtil.inTransaction(session -> {
+            CommissionMapper cm = session.getMapper(CommissionMapper.class);
+            CommissionOrder order = cm.getOrderByIdForUpdate(orderId);
+            if (order == null || order.getStatus() == null || order.getStatus() != 0) {
+                return false;
+            }
+            return CommissionTxOps.closeOrder(session, order, adminId, "ADMIN_CLOSE");
+        }));
+    }
+
+    @Override
+    public int closeExpiredOrders() {
+        Integer closed = SessionUtil.inTransaction(session ->
+                CommissionTxOps.closeExpired(session, PlatformConfig.orderTimeoutMinutes(), 200));
+        return closed == null ? 0 : closed;
+    }
+
+    // ==================== 管理端 ====================
+
+    @Override
+    public List<CommissionOrder> getAdminOrders(String keyword, Integer status,
+                                                Integer pageNum, Integer pageSize) {
+        return mapper.getAdminOrders(keyword, status, pageNum, pageSize);
+    }
+
+    @Override
+    public long getAdminOrderTotal(String keyword, Integer status) {
+        return mapper.getAdminOrderTotal(keyword, status);
+    }
+
+    @Override
+    public Map<String, Object> getOrderStats() {
+        return mapper.getOrderStats();
+    }
+
+    @Override
+    public List<Transaction> getTransactions(String orderNo) {
+        return mapper.getTransactionsByOrderNo(orderNo);
     }
 
     private String generateOrderNo() {

@@ -2,6 +2,7 @@ package com.dimension.controller.payment;
 
 import cn.hutool.core.map.MapUtil;
 import com.dimension.entity.Payment;
+import com.dimension.payment.PaymentGatewayFactory;
 import com.dimension.service.PaymentService;
 import com.dimension.service.impl.PaymentServiceImpl;
 import com.dimension.utils.JsonResultOutputUtil;
@@ -40,6 +41,14 @@ public class PaymentServlet extends HttpServlet {
         if (action == null) action = "";
         try {
             switch (action) {
+                case "channels": {
+                    // 前端下单时只显示真正可用的渠道（未配置商户参数的不显示）
+                    JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
+                            .put("flag", 0)
+                            .put("channels", PaymentGatewayFactory.availability())
+                            .build());
+                    return;
+                }
                 case "create": {
                     String orderNo = req.getParameter("orderNo");
                     Long buyerId = req.getParameter("buyerId") == null

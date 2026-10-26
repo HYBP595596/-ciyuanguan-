@@ -6,7 +6,9 @@ import com.dimension.entity.Transaction;
 import com.dimension.entity.User;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface CommissionMapper {
 
@@ -46,6 +48,11 @@ public interface CommissionMapper {
 
     CommissionOrder getOrderById(@Param("orderId") Long orderId);
 
+    /** 事务内加行锁读订单（状态流转前必须先锁） */
+    CommissionOrder getOrderByIdForUpdate(@Param("orderId") Long orderId);
+
+    CommissionOrder getOrderByNoForUpdate(@Param("orderNo") String orderNo);
+
     List<CommissionOrder> getOrdersByBuyer(@Param("buyerId") Long buyerId);
 
     List<CommissionOrder> getOrdersByArtist(@Param("artistId") Long artistId);
@@ -55,6 +62,38 @@ public interface CommissionMapper {
     int setDeliveryPreview(@Param("orderId") Long orderId, @Param("url") String url);
 
     int setDeliveryFinal(@Param("orderId") Long orderId, @Param("url") String url);
+
+    // ==================== 状态机（带前置状态，防止并发重复流转） ====================
+
+    /** 待支付 → 绘制中（资金托管），只有 status=0 能成功 */
+    int startOrderByOrderNo(@Param("orderNo") String orderNo);
+
+    /** 待验收 → 已完成，同时写入抽成与画师实收 */
+    int completeOrder(@Param("orderId") Long orderId,
+                      @Param("platformFee") BigDecimal platformFee,
+                      @Param("artistIncome") BigDecimal artistIncome);
+
+    /** 已付款(绘制中/待验收) → 已退款 */
+    int markRefundedOrder(@Param("orderId") Long orderId,
+                          @Param("allowDelivered") boolean allowDelivered);
+
+    /** 待支付 → 已关闭（超时或取消） */
+    int closeOrder(@Param("orderId") Long orderId);
+
+    /** 超时未支付的订单（懒关闭/定时任务用） */
+    List<CommissionOrder> getExpiredOrders(@Param("minutes") int minutes,
+                                           @Param("limit") int limit);
+
+    // ==================== 管理端 ====================
+    List<CommissionOrder> getAdminOrders(@Param("keyword") String keyword,
+                                         @Param("status") Integer status,
+                                         @Param("pageNum") Integer pageNum,
+                                         @Param("pageSize") Integer pageSize);
+
+    long getAdminOrderTotal(@Param("keyword") String keyword,
+                            @Param("status") Integer status);
+
+    Map<String, Object> getOrderStats();
 
     // ==================== 流水 / 日志 ====================
     void insertTransaction(Transaction transaction);

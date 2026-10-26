@@ -103,6 +103,15 @@
         WHERE o.id = #{orderId}
     </select>
 
+    <!-- 事务内加锁：只取订单主表，避免 FOR UPDATE 把联表行一起锁住 -->
+    <select id="getOrderByIdForUpdate" resultType="com.dimension.entity.CommissionOrder">
+        SELECT * FROM dimension_commission_order WHERE id = #{orderId} FOR UPDATE
+    </select>
+
+    <select id="getOrderByNoForUpdate" resultType="com.dimension.entity.CommissionOrder">
+        SELECT * FROM dimension_commission_order WHERE order_no = #{orderNo} FOR UPDATE
+    </select>
+
     <select id="getOrdersByBuyer" resultType="com.dimension.entity.CommissionOrder">
         <include refid="orderJoin"/>
         WHERE o.buyer_id = #{buyerId}
@@ -138,6 +147,92 @@
     <update id="updateTransactionId">
         UPDATE dimension_commission_order SET transaction_id = #{transactionId} WHERE order_no = #{orderNo}
     </update>
+
+    <!-- ==================== 状态机 ==================== -->
+
+    <update id="startOrderByOrderNo">
+        UPDATE dimension_commission_order
+        SET status = 1, update_time = NOW()
+        WHERE order_no = #{orderNo} AND status = 0
+    </update>
+
+    <update id="completeOrder">
+        UPDATE dimension_commission_order
+        SET status = 3,
+            platform_fee = #{platformFee},
+            artist_income = #{artistIncome},
+            update_time = NOW()
+        WHERE id = #{orderId} AND status = 2
+    </update>
+
+    <update id="markRefundedOrder">
+        UPDATE dimension_commission_order
+        SET status = 4, close_time = NOW(), update_time = NOW()
+        WHERE id = #{orderId}
+        <choose>
+            <when test="allowDelivered">AND status IN (1, 2)</when>
+            <otherwise>AND status = 1</otherwise>
+        </choose>
+    </update>
+
+    <update id="closeOrder">
+        UPDATE dimension_commission_order
+        SET status = 5, close_time = NOW(), update_time = NOW()
+        WHERE id = #{orderId} AND status = 0
+    </update>
+
+    <select id="getExpiredOrders" resultType="com.dimension.entity.CommissionOrder">
+        SELECT id, order_no, buyer_id, artist_id, amount, status, create_time
+        FROM dimension_commission_order
+        WHERE status = 0
+          AND create_time &lt; DATE_SUB(NOW(), INTERVAL #{minutes} MINUTE)
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
+    <!-- ==================== 管理端 ==================== -->
+    <sql id="adminOrderWhere">
+        <where>
+            <if test="status != null">
+                AND o.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (o.order_no LIKE CONCAT('%', #{keyword}, '%')
+                     OR b.nickname LIKE CONCAT('%', #{keyword}, '%')
+                     OR a.nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </sql>
+
+    <select id="getAdminOrders" resultType="com.dimension.entity.CommissionOrder">
+        <include refid="orderJoin"/>
+        <include refid="adminOrderWhere"/>
+        ORDER BY o.id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getAdminOrderTotal" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM dimension_commission_order o
+                 LEFT JOIN dimension_user b ON b.id = o.buyer_id
+                 LEFT JOIN dimension_user a ON a.id = o.artist_id
+        <include refid="adminOrderWhere"/>
+    </select>
+
+    <select id="getOrderStats" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*)                                                        AS total,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END)                      AS waitingPay,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END)                      AS drawing,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END)                      AS waitingAccept,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END)                      AS finished,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END)                      AS refunded,
+            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END)                      AS closed,
+            COALESCE(SUM(CASE WHEN status IN (1, 2, 3) THEN amount ELSE 0 END), 0)     AS paidAmount,
+            COALESCE(SUM(CASE WHEN status = 3 THEN platform_fee ELSE 0 END), 0)        AS platformFee,
+            COALESCE(SUM(CASE WHEN status = 3 THEN artist_income ELSE 0 END), 0)       AS artistIncome
+        FROM dimension_commission_order
+    </select>
 
     <!-- ==================== 流水 / 日志 ==================== -->
     <insert id="insertTransaction" parameterType="com.dimension.entity.Transaction">

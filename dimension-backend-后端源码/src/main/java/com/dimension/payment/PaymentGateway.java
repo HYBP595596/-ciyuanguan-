@@ -14,6 +14,15 @@ public interface PaymentGateway {
     String channel();
 
     /**
+     * 渠道参数是否已配置齐全。
+     * 没配置时不应该为订单开出支付单（否则用户拿到一个永远付不掉的单子），
+     * 上层据此直接拒绝下单支付并给出明确原因。
+     */
+    default boolean isConfigured() {
+        return true;
+    }
+
+    /**
      * 预下单（统一下单）。返回给前端的支付参数，
      * 真实渠道会返回 code_url / 跳转链接 / prepay_id 等。
      */

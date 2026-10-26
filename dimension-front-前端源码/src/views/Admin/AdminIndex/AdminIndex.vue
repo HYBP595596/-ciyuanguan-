@@ -5,7 +5,7 @@
         <AdminAsideMenu />
       </el-aside>
       <el-container class="right-container">
-        <el-header class="header" height="64px"><Header/></el-header>
+        <el-header class="header" height="64px"><AdminHeader/></el-header>
         <el-main class="main"><router-view class="child-page"/></el-main>
       </el-container>
     </el-container>
@@ -14,8 +14,8 @@
 
 <script>
 import AdminAsideMenu from "@/components/Admin/AdminAsideMenu/AdminAsideMenu";
-import Header from "@/components/Admin/Header/Header";
-export default { name: "AdminIndex", components: { Header, AdminAsideMenu } }
+import AdminHeader from "@/components/Admin/AdminHeader/AdminHeader";
+export default { name: "AdminIndex", components: { AdminHeader, AdminAsideMenu } }
 </script>
 
 <style scoped>

@@ -35,6 +35,10 @@
         <i class="el-icon-menu"></i>
         <span slot="title">分类管理</span>
       </el-menu-item>
+      <el-menu-item index="/order-management">
+        <i class="el-icon-s-order"></i>
+        <span slot="title">约稿订单</span>
+      </el-menu-item>
       <el-menu-item index="/notice-management">
         <i class="el-icon-bell"></i>
         <span slot="title">公告管理</span>

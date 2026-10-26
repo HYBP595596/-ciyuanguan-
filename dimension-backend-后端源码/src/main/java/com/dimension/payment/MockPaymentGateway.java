@@ -1,12 +1,11 @@
 package com.dimension.payment;
 
 import cn.hutool.crypto.SecureUtil;
+import com.dimension.config.PlatformConfig;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * 模拟支付网关：接口形态与真实渠道完全一致，只有"网络连接"是本地模拟的。
@@ -20,8 +19,6 @@ import java.util.Properties;
 public class MockPaymentGateway implements PaymentGateway {
 
     public static final String CHANNEL = "MOCK";
-
-    private static final Properties CONFIG = loadConfig();
 
     @Override
     public String channel() {
@@ -117,29 +114,16 @@ public class MockPaymentGateway implements PaymentGateway {
     }
 
     private static String secret() {
-        return CONFIG.getProperty("payment.mock.secret", "dimension-mock-payment-secret");
+        return PlatformConfig.get("payment.mock.secret", "dimension-mock-payment-secret");
     }
 
     private static String apiBase() {
-        return CONFIG.getProperty("payment.api.base", "/dimension_dev_01_war_exploded");
+        return PlatformConfig.apiBase();
     }
 
     private static String trim(String s) {
         if (s == null) return null;
         String t = s.trim();
         return t.isEmpty() ? null : t;
-    }
-
-    private static Properties loadConfig() {
-        Properties p = new Properties();
-        try (InputStream in = MockPaymentGateway.class.getClassLoader()
-                .getResourceAsStream("payment.properties")) {
-            if (in != null) {
-                p.load(in);
-            }
-        } catch (Exception ignored) {
-            // 配置缺失时用默认值，保证可跑
-        }
-        return p;
     }
 }

@@ -47,7 +47,9 @@ public class AdminAuthenticationFilter implements Filter {
             // 分类管理
             "/CategoryAdmin",
             // 管理员账号管理
-            "/AdminAccount"
+            "/AdminAccount",
+            // 订单管理（列表/强制退款/强制关单）
+            "/AdminOrder"
     ));
 
     @Override

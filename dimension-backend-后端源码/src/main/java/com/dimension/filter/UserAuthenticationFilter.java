@@ -46,15 +46,15 @@ public class UserAuthenticationFilter implements Filter {
             "/FollowUser", "/UnfollowUser",
             // 私信 / 消息中心
             "/Message", "/Inbox",
-            // 约稿（create/myOrders/confirm）+ 画师侧 + 支付
-            "/Commission", "/Artist", "/Payment",
+            // 约稿（create/myOrders/confirm/cancel）+ 画师侧 + 支付 + 结算提现
+            "/Commission", "/Artist", "/Payment", "/Settlement",
             // 约稿交付包上传
             "/UploadDeliveryFile"
     ));
 
-    /** Commission 里这些 action 是公开的（约稿广场、方案列表）；订单详情/下单/确认都要登录 */
+    /** Commission 里这些 action 是公开的（约稿广场、方案列表、可用支付渠道） */
     private static final Set<String> PUBLIC_ACTIONS = new HashSet<>(Arrays.asList(
-            "artists", "artistPlans", "onlinePlans"
+            "artists", "artistPlans", "onlinePlans", "channels"
     ));
 
     @Override

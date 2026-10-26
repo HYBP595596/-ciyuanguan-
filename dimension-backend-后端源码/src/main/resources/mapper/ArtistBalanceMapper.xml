@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.ArtistBalanceMapper">
+
+    <select id="getByUserId" resultType="com.dimension.entity.ArtistBalance">
+        SELECT b.*, u.nickname, u.avatar
+        FROM dimension_artist_balance b
+                 LEFT JOIN dimension_user u ON u.id = b.user_id
+        WHERE b.user_id = #{userId}
+    </select>
+
+    <!-- 有则累加，无则创建；total_income 记累计实收 -->
+    <insert id="addIncome">
+        INSERT INTO dimension_artist_balance (user_id, balance, total_income, total_withdrawn, update_time)
+        VALUES (#{userId}, #{amount}, #{amount}, 0, NOW())
+        ON DUPLICATE KEY UPDATE
+            balance      = balance + #{amount},
+            total_income = total_income + #{amount},
+            update_time  = NOW()
+    </insert>
+
+    <!-- 数据库层面防超提：余额不足时影响 0 行 -->
+    <update id="deductBalance">
+        UPDATE dimension_artist_balance
+        SET balance = balance - #{amount}, update_time = NOW()
+        WHERE user_id = #{userId} AND balance >= #{amount}
+    </update>
+
+    <update id="refundBalance">
+        UPDATE dimension_artist_balance
+        SET balance = balance + #{amount}, update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="addWithdrawn">
+        UPDATE dimension_artist_balance
+        SET total_withdrawn = total_withdrawn + #{amount}, update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- ==================== 提现申请 ==================== -->
+    <insert id="insertWithdraw" parameterType="com.dimension.entity.ArtistWithdraw"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_artist_withdraw
+            (user_id, amount, status, account, create_time, update_time)
+        VALUES
+            (#{userId}, #{amount}, 0, #{account}, NOW(), NOW())
+    </insert>
+
+    <select id="getWithdrawById" resultType="com.dimension.entity.ArtistWithdraw">
+        SELECT w.*, u.nickname, u.avatar
+        FROM dimension_artist_withdraw w
+                 LEFT JOIN dimension_user u ON u.id = w.user_id
+        WHERE w.id = #{id}
+    </select>
+
+    <select id="getWithdrawsByUser" resultType="com.dimension.entity.ArtistWithdraw">
+        SELECT w.*, u.nickname, u.avatar
+        FROM dimension_artist_withdraw w
+                 LEFT JOIN dimension_user u ON u.id = w.user_id
+        WHERE w.user_id = #{userId}
+        ORDER BY w.id DESC
+    </select>
+
+    <select id="getWithdraws" resultType="com.dimension.entity.ArtistWithdraw">
+        SELECT w.*, u.nickname, u.avatar
+        FROM dimension_artist_withdraw w
+                 LEFT JOIN dimension_user u ON u.id = w.user_id
+        <where>
+            <if test="status != null">
+                AND w.status = #{status}
+            </if>
+        </where>
+        ORDER BY w.id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getWithdrawTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_artist_withdraw w
+        <where>
+            <if test="status != null">
+                AND w.status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <update id="auditWithdraw">
+        UPDATE dimension_artist_withdraw
+        SET status = #{status}, audit_admin_id = #{adminId}, remark = #{remark}, update_time = NOW()
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <select id="countPendingByUser" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM dimension_artist_withdraw WHERE user_id = #{userId} AND status = 0
+    </select>
+
+</mapper>

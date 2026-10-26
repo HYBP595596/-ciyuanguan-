@@ -5,72 +5,57 @@ Vue.use(VueRouter)
 
 const routes = [
   {
-    // 首页
+    // 前台主布局：顶部导航 + 左侧栏 + 内容区
     path: '/',
     name: 'index',
-    component: () => import('@/views/Index/Index'),
+    component: () => import('@/views/Site/Index'),
     redirect: '/index-body',
     children: [
       {
         path: '/index-body',
         name: 'index-body',
-        component: () => import('@/views/Index/IndexBody/IndexBody')
+        component: () => import('@/views/Site/IndexBody/IndexBody')
       },
       {
         path: '/image-detail',
         name: 'image-detail',
-        component: () => import('@/views/Index/ImageDetail/ImageDetail')
+        component: () => import('@/views/Site/ImageDetail/ImageDetail')
       },
       {
         path: '/user-center',
         name: 'user-center',
-        component: () => import('@/views/Index/UserCenter/UserCenter')
-      },
-      {
-        path: '/blank-page',
-        name: 'blank-page',
-        component: () => import('@/views/Index/BlankPage')
-      },
-      {
-        path: '/blank-page2',
-        name: 'blank-page2',
-        component: () => import('@/views/Index/BlankPage2')
-      },
-      {
-        path: '/blank-page3',
-        name: 'blank-page3',
-        component: () => import('@/views/Index/BlankPage3')
+        component: () => import('@/views/Site/UserCenter/UserCenter')
       },
       {
         path: '/publish',
         name: 'publish',
-        component: () => import('@/views/Index/Publish/Publish')
+        component: () => import('@/views/Site/Publish/Publish')
       },
       {
-        // 约稿中心：广场 / 我的约稿 / 画师中心
+        // 约稿中心：广场 / 我的约稿 / 画师中心（含余额提现）
         path: '/commission',
         name: 'commission',
-        component: () => import('@/views/Commission/CommissionCenter')
+        component: () => import('@/views/Community/Commission/CommissionCenter')
       },
       {
         // 私信
         path: '/messages',
         name: 'messages',
-        component: () => import('@/views/Message/MessageCenter')
+        component: () => import('@/views/Community/Message/MessageCenter')
       },
       {
         // 全站公告
         path: '/notices',
         name: 'notices',
-        component: () => import('@/views/Notice/NoticeList')
+        component: () => import('@/views/Community/Notice/NoticeList')
       },
       {
         // 消息中心：消息（私信/评论回复/@提及）+ 通知（公告/作品更新）
         path: '/inbox',
         name: 'inbox',
-        component: () => import('@/views/Inbox/InboxPage')
+        component: () => import('@/views/Community/Inbox/InboxPage')
       }
-    ],
+    ]
   },
   {
     path: '/admin-login',
@@ -103,32 +88,38 @@ const routes = [
         name: 'user-management',
         component: () => import('@/views/Admin/AdminIndex/UserManagement/UserManagement')
       },
-      // 🚨 新增：作品审核管理
       {
+        // 作品审核
         path: '/audit-management',
         name: 'audit-management',
         component: () => import('@/views/Admin/AdminIndex/AuditManagement/AuditManagement')
       },
-      // 🚨 新增：画师审核管理
       {
+        // 画师审核
         path: '/artist-management',
         name: 'artist-management',
         component: () => import('@/views/Admin/AdminIndex/ArtistManagement/ArtistManagement')
       },
-      // 分类管理：管理作品所属的类型
       {
+        // 分类管理
         path: '/category-management',
         name: 'category-management',
         component: () => import('@/views/Admin/AdminIndex/CategoryManagement/CategoryManagement')
       },
-      // 公告管理
       {
+        // 约稿订单管理（强制退款 / 强制关单 / 提现审核）
+        path: '/order-management',
+        name: 'order-management',
+        component: () => import('@/views/Admin/AdminIndex/OrderManagement/OrderManagement')
+      },
+      {
+        // 公告管理
         path: '/notice-management',
         name: 'notice-management',
         component: () => import('@/views/Admin/AdminIndex/NoticeManagement/NoticeManagement')
       },
-      // 管理员账号管理
       {
+        // 管理员账号管理
         path: '/admin-account-management',
         name: 'admin-account-management',
         component: () => import('@/views/Admin/AdminIndex/AdminAccountManagement/AdminAccountManagement')
@@ -153,34 +144,28 @@ VueRouter.prototype.replace = function replace(location) {
   return originalReplace.call(this, location).catch(err => err)
 }
 
-// ================= 路由守卫：权限拦截 =================
-router.beforeEach((to, from, next) => {
-  // 判断要去的地方是不是后台管理页面（路径包含 admin-index 或者审核页面）
-  const isAdminPage = to.path.includes('/admin-index') ||
-      to.path.includes('/audit-management') ||
-      to.path.includes('/artist-management') ||
-      to.path.includes('/image-management') ||
-      to.path.includes('/user-management') ||
-      to.path.includes('/comment-management') ||
-      to.path.includes('/category-management') ||
-      to.path.includes('/notice-management') ||
-      to.path.includes('/admin-account-management');
+// ================= 路由守卫：后台页面必须带管理员令牌 =================
+// 约定：所有后台路由都在 /admin-index 下，或属于下列后台功能页
+const ADMIN_ROUTE_PREFIXES = [
+  '/admin-index',
+  '/image-management',
+  '/comment-management',
+  '/user-management',
+  '/audit-management',
+  '/artist-management',
+  '/category-management',
+  '/order-management',
+  '/notice-management',
+  '/admin-account-management'
+]
 
-  if (isAdminPage) {
-    // 如果是去后台，必须携带 adminToken
-    const adminToken = sessionStorage.getItem('adminToken');
-    if (!adminToken) {
-      // 没有登录凭证，强行踢回管理员登录页
-      next('/admin-login');
-    } else {
-      // 凭证存在，放行
-      next();
-    }
-  } else {
-    // 如果去的是前台页面，直接放行
-    next();
+router.beforeEach((to, from, next) => {
+  const isAdminPage = ADMIN_ROUTE_PREFIXES.some(prefix => to.path.indexOf(prefix) === 0)
+  if (isAdminPage && !sessionStorage.getItem('adminToken')) {
+    next('/admin-login')
+    return
   }
-});
-// ======================================================
+  next()
+})
 
 export default router

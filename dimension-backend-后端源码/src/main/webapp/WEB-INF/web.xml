@@ -43,4 +43,9 @@
         <filter-name>AdminAuthenticationFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
+    <!--订单超时关闭的定时任务：每分钟扫一次待支付且已超时的订单-->
+    <listener>
+        <listener-class>com.dimension.listener.OrderTimeoutListener</listener-class>
+    </listener>
 </web-app>

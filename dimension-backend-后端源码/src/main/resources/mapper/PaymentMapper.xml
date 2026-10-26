@@ -16,6 +16,10 @@
         SELECT * FROM dimension_payment WHERE payment_no = #{paymentNo}
     </select>
 
+    <select id="getByPaymentNoForUpdate" resultType="com.dimension.entity.Payment">
+        SELECT * FROM dimension_payment WHERE payment_no = #{paymentNo} FOR UPDATE
+    </select>
+
     <select id="getPendingByOutTradeNo" resultType="com.dimension.entity.Payment">
         SELECT * FROM dimension_payment
         WHERE out_trade_no = #{outTradeNo} AND status = 0
@@ -25,6 +29,12 @@
     <select id="getLatestByOutTradeNo" resultType="com.dimension.entity.Payment">
         SELECT * FROM dimension_payment
         WHERE out_trade_no = #{outTradeNo}
+        ORDER BY id DESC LIMIT 1
+    </select>
+
+    <select id="getPaidByOutTradeNo" resultType="com.dimension.entity.Payment">
+        SELECT * FROM dimension_payment
+        WHERE out_trade_no = #{outTradeNo} AND status = 1
         ORDER BY id DESC LIMIT 1
     </select>
 
@@ -38,6 +48,12 @@
         UPDATE dimension_payment
         SET status = 2, close_at = NOW(), update_time = NOW()
         WHERE payment_no = #{paymentNo} AND status = 0
+    </update>
+
+    <update id="closePendingByOutTradeNo">
+        UPDATE dimension_payment
+        SET status = 2, close_at = NOW(), update_time = NOW()
+        WHERE out_trade_no = #{outTradeNo} AND status = 0
     </update>
 
     <update id="markRefunded">
