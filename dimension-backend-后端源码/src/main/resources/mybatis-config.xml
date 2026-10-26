@@ -31,10 +31,16 @@
                 <property name="username" value="${jdbc.username}"/>
                 <property name="password" value="${jdbc.password}"/>
 
-                <!--最大的活动连接数，活动连接，就是正在与数据库交互的连接-->
-                <property name="poolMaximumIdleConnections" value="1000"/>
-                <!--是空闲连接数，就是没有处理请求的连接-->
-                <property name="poolMaximumActiveConnections" value="1000"/>
+                <!-- 连接池上限必须低于 MySQL 的 max_connections(151)，
+                     原来写 1000 一旦有泄漏就会把数据库连接打满 -->
+                <property name="poolMaximumActiveConnections" value="20"/>
+                <property name="poolMaximumIdleConnections" value="10"/>
+                <!-- 取连接最长等待 20s，等不到就抛错，避免请求无限堆积 -->
+                <property name="poolMaximumCheckoutTime" value="20000"/>
+                <property name="poolTimeToWait" value="20000"/>
+                <!-- 空闲连接探活，防止 MySQL 主动断开后拿到死连接 -->
+                <property name="poolPingEnabled" value="true"/>
+                <property name="poolPingQuery" value="SELECT 1"/>
             </dataSource>
         </environment>
     </environments>
@@ -55,5 +61,9 @@
         <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="mapper/ImageRatingMapper.xml"/>
         <mapper resource="mapper/CommissionMapper.xml"/>
+        <mapper resource="mapper/MessageMapper.xml"/>
+        <mapper resource="mapper/PaymentMapper.xml"/>
+        <mapper resource="mapper/NoticeMapper.xml"/>
+        <mapper resource="mapper/InboxMapper.xml"/>
     </mappers>
 </configuration>

@@ -44,4 +44,11 @@
         select count(*) as count from dimension_image_rating where image_id = #{imageId} and `like` = 1
     </select>
 
+    <update id="imageVotesIncrement">
+        UPDATE dimension_image SET votes = votes + 1 WHERE id = #{imageId}
+    </update>
+    <update id="imageVotesDecrement">
+        UPDATE dimension_image SET votes = GREATEST(votes - 1, 0) WHERE id = #{imageId}
+    </update>
+
 </mapper>

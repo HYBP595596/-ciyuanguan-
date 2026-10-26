@@ -60,6 +60,13 @@
         <span slot="title">約稿</span>
       </el-menu-item>
 
+      <el-menu-item index="messages">
+        <i class="el-icon-message"></i>
+        <span slot="title">
+          私信<em class="aside-unread" v-if="unreadCount">{{ unreadCount > 99 ? '99+' : unreadCount }}</em>
+        </span>
+      </el-menu-item>
+
       <el-menu-item index="bookmark" @click="clickCollect">
         <i class="el-icon-collection"></i>
         <span slot="title">珍藏冊</span>
@@ -67,15 +74,7 @@
 
       <div class="menu-divider" v-show="!collapsed"></div>
 
-      <!-- 👑 管理后台专属菜单：审核 -->
-      <el-menu-item index="audit" v-if="isAdmin">
-        <i class="el-icon-s-check"></i>
-        <span slot="title">作品审核</span>
-      </el-menu-item>
-      <el-menu-item index="artist-audit" v-if="isAdmin">
-        <i class="el-icon-user"></i>
-        <span slot="title">画师审核</span>
-      </el-menu-item>
+
 
       <div class="menu-divider" v-show="!collapsed"></div>
 
@@ -88,7 +87,7 @@
     <!-- 底部信息栏 -->
     <div class="sidebar-footer" v-show="!collapsed">
       <div class="footer-line">
-        <a href="javascript:;" @click="onFooterClick('公告')">公告</a>
+        <a href="javascript:;" @click="$router.push('/notices')">公告</a>
         <a href="javascript:;" @click="onFooterClick('幫助')">幫助</a>
         <a href="javascript:;" @click="onFooterClick('使用條款')">使用條款</a>
       </div>
@@ -119,12 +118,19 @@ export default {
   data() {
     return {
       activeMenu: 'home',
-      isAdmin: false
+      isAdmin: false,
+      unreadCount: 0
+    }
+  },
+  watch: {
+    $route() {
+      this.loadUnread()
     }
   },
   mounted() {
     // 如果 sessionStorage 里有 adminToken，说明当前是管理员在后台
     this.isAdmin = !!sessionStorage.getItem('adminToken');
+    this.loadUnread()
   },
 
   methods: {
@@ -152,16 +158,28 @@ export default {
         case 'newest':
           this.event && this.event.$emit('searchImageWithKeyword', '最新作品')
           break
-          // 🚨 后台审核跳转
-        case 'audit':
-          this.$router.push('/audit-management')
+        case 'commission':
+          this.$router.push('/commission')
           break
-        case 'artist-audit':
-          this.$router.push('/artist-management')
+        case 'messages':
+          this.$router.push('/messages')
           break
+        case 'following':
+          this.$router.push({ path: '/user-center', query: { activeUserTabName: 'followingTab' } })
+          break
+
         default:
           this.$message.info('功能开发中')
       }
+    },
+    loadUnread() {
+      if (!this.isLogin) return
+      let me = null
+      try { me = JSON.parse(sessionStorage.getItem('user')) } catch (e) {}
+      if (!me || !me.id) return
+      this.request.get(`Message?action=unread&userId=${me.id}`).then(res => {
+        this.unreadCount = (res && res.unread) || 0
+      }).catch(() => {})
     },
     clickCollect() {
       if (!this.isLogin) {
@@ -329,5 +347,22 @@ export default {
 .sidebar ::v-deep .el-menu-item-group__title,
 .sidebar ::v-deep .el-menu--inline {
   background-color: transparent !important;
+}
+
+/* 私信未读角标 */
+.aside-unread {
+  display: inline-block;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  text-align: center;
+  vertical-align: middle;
 }
 </style>

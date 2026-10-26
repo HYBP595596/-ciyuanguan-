@@ -20,6 +20,17 @@ html, body, #app {
   height: 100%;
 }
 
+/* html 只给底色，不加 scrollbar-gutter：
+   前台/后台都是 100vh 固定布局、滚动发生在内部容器里，
+   在 html 上预留滚动条会让整个视口右侧多出 8px 空带，顶栏盖不到最右边 */
+html {
+  background: var(--bg-page);
+}
+
+body {
+  background: var(--bg-page);
+}
+
 /* ===================== 主题变量 ===================== */
 :root {
   --bg-page: #f5f5f5;
@@ -78,8 +89,9 @@ img {
   width: 8px;
   height: 8px;
 }
+/* 轨道用页面底色填满，滚动条出现/消失时不会露出突兀的缝 */
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-page);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);

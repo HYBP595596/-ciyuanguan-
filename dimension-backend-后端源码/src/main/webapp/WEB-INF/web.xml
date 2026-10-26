@@ -24,15 +24,15 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!--用户认证过滤器-->
-<!--    <filter>-->
-<!--        <filter-name>UserAuthenticationFilter</filter-name>-->
-<!--        <filter-class>com.dimension.filter.UserAuthenticationFilter</filter-class>-->
-<!--    </filter>-->
-<!--    <filter-mapping>-->
-<!--        <filter-name>UserAuthenticationFilter</filter-name>-->
-<!--        <url-pattern>/*</url-pattern>-->
-<!--    </filter-mapping>-->
+    <!--用户认证过滤器：保护写操作与私有数据，浏览类接口放行-->
+    <filter>
+        <filter-name>UserAuthenticationFilter</filter-name>
+        <filter-class>com.dimension.filter.UserAuthenticationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>UserAuthenticationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <!--管理员认证过滤器-->
     <filter>

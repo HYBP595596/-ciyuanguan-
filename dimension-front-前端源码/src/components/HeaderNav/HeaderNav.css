@@ -2,6 +2,30 @@
    HeaderNav.css - 完整版
    ======================================== */
 
+/* 顶栏消息/通知未读角标 */
+.hn-badge-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.hn-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  text-align: center;
+  pointer-events: none;
+}
+
 /* ========== 顶部栏容器：严格垂直居中 ========== */
 .hn-bar {
   display: flex;

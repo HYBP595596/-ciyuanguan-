@@ -35,8 +35,17 @@
 
       <el-button type="warning" size="mini" icon="el-icon-edit" @click="goPublish">发布</el-button>
 
-      <i class="el-icon-bell hn-icon" @click="goMessage"></i>
-      <i class="el-icon-message hn-icon" @click="goNotification"></i>
+      <!-- 消息：私信 + 评论回复 + @提及 -->
+      <span class="hn-badge-wrap" @click="goMessage" title="消息：私信 / 评论回复 / @提及">
+        <i class="el-icon-message hn-icon"></i>
+        <em class="hn-badge" v-if="msgUnread">{{ msgUnread > 99 ? '99+' : msgUnread }}</em>
+      </span>
+
+      <!-- 通知：系统公告 + 作品更新 + 活动推送 -->
+      <span class="hn-badge-wrap" @click="goNotification" title="通知：系统公告 / 作品更新">
+        <i class="el-icon-bell hn-icon"></i>
+        <em class="hn-badge" v-if="noticeUnread">{{ noticeUnread > 99 ? '99+' : noticeUnread }}</em>
+      </span>
 
       <!-- 已登录：头像下拉 -->
       <el-dropdown v-if="isLogin" class="hn-avatar-wrap" trigger="click">
@@ -46,11 +55,11 @@
         <el-dropdown-menu slot="dropdown" class="hn-dropdown-menu">
           <div class="hn-stats" @click.stop>
             <div class="hn-stat-item" @click="goFollowing">
-              <span class="hn-stat-num">{{ user.followingCount || 0 }}</span>
+              <span class="hn-stat-num">{{ followingCount }}</span>
               <span class="hn-stat-label">关注</span>
             </div>
             <div class="hn-stat-item" @click="goFans">
-              <span class="hn-stat-num">{{ user.fansCount || 0 }}</span>
+              <span class="hn-stat-num">{{ fansCount }}</span>
               <span class="hn-stat-label">粉丝</span>
             </div>
           </div>
@@ -120,16 +129,32 @@ export default {
       },
       isDark: getTheme() === 'dark',
       isLogin: false,
-      user: {}
+      user: {},
+      msgUnread: 0,
+      noticeUnread: 0,
+      followingCount: 0,
+      fansCount: 0
+    }
+  },
+  watch: {
+    // 切页面时刷新消息/通知角标
+    $route() {
+      this.loadInbox()
     }
   },
   mounted() {
     this.isLogin = !!sessionStorage.getItem('token')
     if (this.isLogin) {
       try { this.user = JSON.parse(sessionStorage.getItem('user')) } catch (e) {}
+      this.loadInbox()
+      this.loadFollowCounts()
     }
     if (this.event && this.event.$on) {
       this.event.$on('popLoginForm', () => { this.loginDialogVisible = true })
+      // 关注/取关后刷新顶部数字
+      this.event.$on('follow-changed', () => this.loadFollowCounts())
+      // 消息中心标记已读后刷新角标
+      this.event.$on('inbox-changed', () => this.loadInbox())
 
       // 👇 新增这一段：监听信息更新事件
       this.event.$on('user-info-updated', (newUser) => {
@@ -137,8 +162,31 @@ export default {
       })
 
     }
+    // token 过期时，request.js 会派发这个事件 → 主动弹出登录框
+    this.needLoginHandler = () => {
+      this.isLogin = false
+      this.user = {}
+      this.msgUnread = 0
+      this.noticeUnread = 0
+      this.loginDialogVisible = true
+    }
+    window.addEventListener('user-need-login', this.needLoginHandler)
+  },
+  beforeDestroy() {
+    if (this.needLoginHandler) {
+      window.removeEventListener('user-need-login', this.needLoginHandler)
+      this.needLoginHandler = null
+    }
   },
   methods: {
+    // 拉取当前登录用户的关注数/粉丝数
+    loadFollowCounts() {
+      if (!this.isLogin || !this.user || !this.user.id) return
+      this.request.get(`Follow?action=counts&userId=${this.user.id}`).then(res => {
+        this.followingCount = (res && res.followingCount) || 0
+        this.fansCount = (res && res.fansCount) || 0
+      }).catch(() => {})
+    },
     clickIndex() { if (this.$route.path !== '/index-body') this.$router.push('/index-body') },
     search() {
       if (!this.keyword) return
@@ -207,17 +255,25 @@ export default {
     },
     goMessage() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
-      else this.$message.info('消息功能开发中')
+      else this.$router.push({ path: '/inbox', query: { tab: 'message' } })
     },
     goNotification() {
       if (!this.isLogin) { this.$message.warning('请先登录'); this.loginDialogVisible = true }
-      else this.$message.info('通知功能开发中')
+      else this.$router.push({ path: '/inbox', query: { tab: 'notice' } })
+    },
+    // 顶部两个角标：消息（私信+评论回复+@提及）、通知（公告+作品更新）
+    loadInbox() {
+      if (!this.isLogin || !this.user || !this.user.id) return
+      this.request.get(`Inbox?action=summary&userId=${this.user.id}`).then(res => {
+        this.msgUnread = (res && res.messageUnread) || 0
+        this.noticeUnread = (res && res.noticeUnread) || 0
+      }).catch(() => {})
     },
     goFollowing() {
-      this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'followingTab' } })
+      this.$router.push({ path: '/user-center', query: { activeUserTabName: 'followingTab' } })
     },
     goFans() {
-      this.$router.push({ path: '/blank-page2', query: { activeUserTabName: 'fansTab' } })
+      this.$router.push({ path: '/user-center', query: { activeUserTabName: 'fansTab' } })
     },
     switchTheme() {
       const next = toggleTheme()

@@ -1,7 +1,28 @@
-.add-image-form{
-    margin-left: 350px;
-    margin-top: 100px;
+/* 新增图片页：表单居中，不再用固定像素 margin 硬顶 */
+.body {
+    padding: 24px;
 }
-.save-button{
-    margin-left: 520px;
+.add-image-form {
+    max-width: 640px;
+    margin: 0 auto;
+}
+/* 上传框：固定 200x200，内部内容不得溢出 */
+.avatar-uploader-box {
+    width: 200px;
+    height: 200px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* 预览图按上传框等比缩放 */
+.avatar-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.save-button {
+    margin-left: 0;
 }

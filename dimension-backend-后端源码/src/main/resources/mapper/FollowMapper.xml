@@ -18,4 +18,24 @@
     <select id="getFansCount" resultType="int">
         select count(*) from dimension_follow where followed_user_id = #{followedUserId}
     </select>
+
+    <select id="getFollowingCount" resultType="int">
+        select count(*) from dimension_follow where user_id = #{userId}
+    </select>
+
+    <!-- 我关注的人 -->
+    <select id="getFollowingUsers" resultType="com.dimension.entity.User">
+        select u.* from dimension_user u
+            inner join dimension_follow f on f.followed_user_id = u.id
+        where f.user_id = #{userId}
+        order by f.id desc
+    </select>
+
+    <!-- 关注我的人（粉丝） -->
+    <select id="getFansUsers" resultType="com.dimension.entity.User">
+        select u.* from dimension_user u
+            inner join dimension_follow f on f.user_id = u.id
+        where f.followed_user_id = #{userId}
+        order by f.id desc
+    </select>
 </mapper>

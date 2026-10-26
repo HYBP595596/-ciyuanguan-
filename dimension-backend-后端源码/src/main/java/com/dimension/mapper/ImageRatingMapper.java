@@ -19,4 +19,9 @@ public interface ImageRatingMapper {
     void updateList(@Param("userId") Long userId, @Param("imageId") Long imageId);
 
     void updateDislike(@Param("userId") Long userId, @Param("imageId") Long imageId);
+
+    void imageVotesIncrement(@Param("imageId") Long imageId);
+
+    void imageVotesDecrement(@Param("imageId") Long imageId);
+
 }

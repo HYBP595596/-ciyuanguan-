@@ -25,7 +25,10 @@ public class GetUserInfo extends BaseUserServlet{
         } catch (NumberFormatException e) {
             System.err.println("字符串 " + userId + " 无法被解析为long ");
         }
-        // 封装Map
+        // 封装Map（绝不把密码返回给前端）
+        if (user != null) {
+            user.setPassword(null);
+        }
         Map<Object, Object> userInfoResult = MapUtil.builder()
                 .put("user", user).build();
         // 响应数据user

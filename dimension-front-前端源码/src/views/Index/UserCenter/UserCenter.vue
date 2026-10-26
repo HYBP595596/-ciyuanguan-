@@ -9,8 +9,31 @@
         </div>
       </div>
       <div class="user-info">
-        <div class="user-nickname">{{ user.nickname }}</div>
-        <div class="user-description">{{ user.description }}</div>
+        <div class="uc-info-panel">
+          <div class="user-nickname">
+            {{ user.nickname }}
+            <el-tag v-if="user.artistStatus === 2" size="mini" type="warning" class="uc-artist-tag">
+              认证画师{{ user.acceptCommission === 1 ? ' · 接稿中' : '' }}
+            </el-tag>
+          </div>
+          <div class="user-description" :title="user.description">{{ user.description }}</div>
+          <div class="uc-stats">
+            <span class="uc-stat" @click="switchTab('followingTab')">
+              <b>{{ followingCount }}</b> 关注
+            </span>
+            <span class="uc-stat" @click="switchTab('fansTab')">
+              <b>{{ fansCount }}</b> 粉丝
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通用私信入口：任何人的主页都能发起对话，不限于约稿 -->
+      <div class="uc-actions" v-if="!isSelf">
+        <el-button size="small" type="primary" icon="el-icon-chat-dot-round" @click="openChat">私信 TA</el-button>
+      </div>
+      <div class="uc-actions" v-else-if="user.artistStatus === 2">
+        <el-button size="small" type="warning" @click="$router.push('/commission')">画师中心</el-button>
       </div>
     </div>
 
@@ -38,7 +61,7 @@
           <div class="grid-list" v-else>
             <div class="grid-card" v-for="item in myImageList" :key="item.image.id">
               <div class="grid-image" style="position: relative;" @click="clickMyImage(item.image)">
-                <img :src="item.image.url" alt=""/>
+                <img :src="$img(item.image.url)" alt=""/>
                 <div v-if="item.image.status === 0" style="position:absolute; top:5px; right:5px; background:orange; color:#fff; padding:2px 6px; border-radius:4px; font-size:12px;">待审核</div>
                 <div v-if="item.image.status === 2" style="position:absolute; top:5px; right:5px; background:red; color:#fff; padding:2px 6px; border-radius:4px; font-size:12px;">已驳回</div>
               </div>
@@ -47,7 +70,11 @@
                 <i class="el-icon-star-off"></i><span>{{ item.image.collects }}</span>
                 <i class="el-icon-view"></i><span>{{ item.image.views }}</span>
               </div>
+              <div class="grid-tags">
+                <el-tag v-for="(tag, i) in item.tagList" :key="i" size="mini" type="danger">{{ tag.name }}</el-tag>
+              </div>
               <div class="grid-footer">
+                <span class="edit-btn" @click="openEdit(item)">编辑</span>
                 <span class="delete-btn" @click="deleteMyImage(item.image.id)">删除</span>
               </div>
             </div>
@@ -60,7 +87,7 @@
           <div class="grid-list" v-else>
             <div class="grid-card" v-for="(item, index) in imageTagBookmarkList" :key="index">
               <div class="grid-image" @click="clickImage(item.image.id)">
-                <img :src="item.image.url" alt=""/>
+                <img :src="$img(item.image.url)" alt=""/>
               </div>
               <div class="grid-stats">
                 <i class="el-icon-medal"></i><span>{{ item.image.score }}</span>
@@ -89,7 +116,7 @@
             <div class="grid-card" v-for="(item, index) in imageTagHistoryCategoryList" :key="index">
               <div class="grid-time">{{ format1(item.watchHistory.createTime) }}</div>
               <div class="grid-image" @click="clickImage(item.image.id)">
-                <img :src="item.image.url" alt=""/>
+                <img :src="$img(item.image.url)" alt=""/>
               </div>
               <div class="grid-stats">
                 <i class="el-icon-medal"></i><span>{{ item.image.score }}</span>
@@ -111,6 +138,32 @@
           </div>
         </el-tab-pane>
 
+        <!-- 关注 -->
+        <el-tab-pane label="关注" name="followingTab">
+          <el-empty v-if="!followingList.length" description="还没有关注任何人"></el-empty>
+          <div class="uc-user-grid" v-else>
+            <div class="uc-user-card" v-for="u in followingList" :key="u.id" @click="clickUserCenter(u.id)">
+              <img v-if="u.avatar" :src="u.avatar" alt=""/>
+              <div v-else class="uc-user-dummy">{{ u.nickname ? u.nickname[0] : 'U' }}</div>
+              <div class="uc-user-name">{{ u.nickname }}</div>
+              <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <!-- 粉丝 -->
+        <el-tab-pane label="粉丝" name="fansTab">
+          <el-empty v-if="!fansList.length" description="还没有粉丝"></el-empty>
+          <div class="uc-user-grid" v-else>
+            <div class="uc-user-card" v-for="u in fansList" :key="u.id" @click="clickUserCenter(u.id)">
+              <img v-if="u.avatar" :src="u.avatar" alt=""/>
+              <div v-else class="uc-user-dummy">{{ u.nickname ? u.nickname[0] : 'U' }}</div>
+              <div class="uc-user-name">{{ u.nickname }}</div>
+              <el-tag v-if="u.artistStatus === 2" size="mini" type="warning">画师</el-tag>
+            </div>
+          </div>
+        </el-tab-pane>
+
         <!-- 修改信息 -->
         <el-tab-pane label="修改信息" name="updateTab" v-if="isSelf">
           <el-tabs tab-position="left" type="border-card" @tab-click="clickUpdate" style="min-height: 420px">
@@ -118,7 +171,7 @@
             <el-tab-pane label="修改头像">
               <div class="avatar-update">
                 <div class="avatar-picker">
-                  <el-upload ref="avatarUpload" :before-upload="beforeUpload" :on-success="userAvatarUploadSuccess" :show-file-list="false" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=avatar&userId=' + user.id" :limit="1">
+                  <el-upload ref="avatarUpload" :before-upload="beforeUpload" :on-success="userAvatarUploadSuccess" :show-file-list="false" :headers="uploadHeaders" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=avatar&userId=' + user.id" :limit="1">
                     <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
                   </el-upload>
                   <el-button type="primary" @click="updateUserAvatar">更新头像</el-button>
@@ -165,13 +218,13 @@
             <el-tab-pane label="修改背景">
               <div class="avatar-update">
                 <div class="avatar-picker">
-                  <el-upload ref="coverUpload" :before-upload="beforeUpload" :on-success="userCoverUploadSuccess" :show-file-list="false" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=cover&userId=' + user.id" :limit="1">
+                  <el-upload ref="coverUpload" :before-upload="beforeUpload" :on-success="userCoverUploadSuccess" :show-file-list="false" :headers="uploadHeaders" :action="'/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=cover&userId=' + user.id" :limit="1">
                     <el-button type="success" icon="el-icon-picture">选择本地图片</el-button>
                   </el-upload>
                   <el-button type="primary" @click="updateUserCover">更新背景</el-button>
                   <div style="margin-top: 20px;">
                     <span style="font-size: 14px; color: #666;">调整背景高度: {{ coverHeight }}px</span>
-                    <el-slider v-model="coverHeight" :min="150" :max="1000" :step="10"></el-slider>
+                    <el-slider v-model="coverHeight" :min="150" :max="1000" :step="10" @change="saveCoverHeight"></el-slider>
                   </div>
                 </div>
                 <div class="avatar-preview">
@@ -206,6 +259,36 @@
         <el-button type="primary" @click="submitApply">提交申请</el-button>
       </span>
     </el-dialog>
+
+    <!-- 编辑我的作品：分类 + 标签 -->
+    <el-dialog title="编辑作品" :visible.sync="editDialogVisible" width="460px">
+      <el-form label-width="80px">
+        <el-form-item label="分类">
+          <el-select v-model="editForm.categoryValueId" placeholder="请选择分类" filterable style="width:100%">
+            <el-option
+                v-for="c in editCategoryList"
+                :key="c.id"
+                :label="c.name"
+                :value="c.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-select v-model="editForm.tagListValueIds" multiple filterable placeholder="请选择标签" style="width:100%">
+            <el-option
+                v-for="t in editTagList"
+                :key="t.id"
+                :label="t.name"
+                :value="t.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="editSaving" @click="saveEdit">保存</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -236,7 +319,19 @@ export default {
         confirmNewPassword: [{ required: true, message: '请输入确认密码', trigger: 'blur' }]
       },
       imageTagHistoryCategoryList: [],
+      // 编辑作品的弹窗
+      editDialogVisible: false,
+      editSaving: false,
+      editFormLoaded: false,
+      editForm: { imageId: null, categoryValueId: null, tagListValueIds: [] },
+      editCategoryList: [],
+      editTagList: [],
       isSelf: true,
+      // 关注/粉丝联动展示
+      followingCount: 0,
+      fansCount: 0,
+      followingList: [],
+      fansList: [],
       selectCover: '',
       coverHeight: 260,
 
@@ -254,11 +349,13 @@ export default {
 
     const loginUser = JSON.parse(loginUserStr);
     const targetUserId = this.$route.query.userId;
+    let profileId = loginUser.id;
 
     if (targetUserId && String(targetUserId) !== String(loginUser.id)) {
       this.isSelf = false;
       this.user = {};
       this.getTargetUserInfo(targetUserId);
+      profileId = targetUserId;
     } else {
       this.isSelf = true;
       this.user = loginUser;
@@ -271,10 +368,55 @@ export default {
     if (this.isSelf) {
       this.selectCover = this.user.coverImage || '';
     }
+    // 关注/粉丝联动数据（自己或他人主页都展示）
+    this.loadFollowData(profileId)
+  },
+  computed: {
+    // el-upload 直传不经过 axios 拦截器，必须自己带上登录凭证
+    uploadHeaders() {
+      const headers = {};
+      const token = sessionStorage.getItem('token');
+      if (token) headers['Authentication'] = token;
+      const adminToken = sessionStorage.getItem('adminToken');
+      if (adminToken) headers['AdminAuthentication'] = adminToken;
+      return headers;
+    }
   },
   methods: {
+    // 加载关注数、粉丝数以及两个列表
+    loadFollowData(userId) {
+      if (!userId) return
+      this.request.get(`Follow?action=counts&userId=${userId}`).then(res => {
+        this.followingCount = (res && res.followingCount) || 0
+        this.fansCount = (res && res.fansCount) || 0
+      })
+      this.request.get(`Follow?action=following&userId=${userId}`).then(res => {
+        this.followingList = (res && res.userList) || []
+      })
+      this.request.get(`Follow?action=fans&userId=${userId}`).then(res => {
+        this.fansList = (res && res.userList) || []
+      })
+    },
+    switchTab(name) {
+      this.activeUserTabName = name
+    },
+    clickUserCenter(userId) {
+      this.$router.push({ path: '/user-center', query: { userId } })
+    },
     format1(t) { return format1(t) },
     format2(t) { return format2(t) },
+
+    // 通用私信：从任何人的主页发起对话
+    openChat() {
+      const me = sessionStorage.getItem('user')
+      if (!me) {
+        this.$message.warning('请先登录')
+        return
+      }
+      const self = JSON.parse(me)
+      if (String(self.id) === String(this.user.id)) return
+      this.$router.push({ path: '/messages', query: { peerId: this.user.id } })
+    },
 
     beforeUpload() { this.$message.info('正在上传中，请稍等...') },
 
@@ -291,6 +433,11 @@ export default {
         this.selectImage = this.user.avatar;
         if (this.isSelf) {
           this.selectCover = this.user.coverImage || '';
+        }
+        // 背景高度以数据库为准（原来只存 sessionStorage，换会话就丢）
+        if (this.user.coverHeight) {
+          this.coverHeight = this.user.coverHeight;
+          sessionStorage.setItem('coverHeight', this.coverHeight);
         }
         if (!this.isSelf) this.activeUserTabName = 'infoTab';
       }).catch(() => {
@@ -323,11 +470,53 @@ export default {
     },
     deleteMyImage(imageId) {
       this.$confirm('确认删除这张作品吗？', '提示', { type: 'warning' }).then(() => {
-        this.request.post(`RemoveImageById?imageId=${imageId}`).then(() => {
-          this.$message.success('删除成功');
-          this.getMyImages();
+        this.request.post(`RemoveImageById?imageId=${imageId}&userId=${this.user.id}`).then(res => {
+          if (res && res.flag === 0) {
+            this.$message.success('删除成功');
+            this.getMyImages();
+          } else {
+            this.$message.error((res && res.message) || '删除失败');
+          }
         });
       });
+    },
+    // 编辑自己的作品：改分类和标签（复用后台的 UpdateImage，带 userId 做归属校验）
+    openEdit(item) {
+      if (!this.editFormLoaded) {
+        this.request.get('GetAllCategory').then(res => {
+          this.editCategoryList = (res && res.categoryList) || [];
+        });
+        this.request.get('GetAllTag').then(res => {
+          this.editTagList = (res && res.tagList) || [];
+        });
+        this.editFormLoaded = true;
+      }
+      this.editForm = {
+        imageId: item.image.id,
+        categoryValueId: item.image.categoryId,
+        tagListValueIds: (item.tagList || []).map(t => t.id)
+      };
+      this.editDialogVisible = true;
+    },
+    saveEdit() {
+      if (!this.editForm.categoryValueId) return this.$message.warning('请选择分类');
+      this.editSaving = true;
+      const payload = {
+        imageId: this.editForm.imageId,
+        categoryValueId: this.editForm.categoryValueId,
+        tagListValueIds: this.editForm.tagListValueIds,
+        userId: this.user.id
+      };
+      this.request.post('UpdateImage', payload).then(res => {
+        this.editSaving = false;
+        if (res && res.flag === 0) {
+          this.$message.success('已保存');
+          this.editDialogVisible = false;
+          this.getMyImages();
+        } else {
+          this.$message.error((res && res.message) || '保存失败');
+        }
+      }).catch(() => { this.editSaving = false });
     },
     clickMyImage(image) {
       if (image.status === 0) return this.$message.warning('该作品正在审核中，暂不能查看详情');
@@ -431,11 +620,26 @@ export default {
       const safeCover = encodeURIComponent(this.selectCover);
       this.request.post(`UpdateUserCover?userId=${this.user.id}&coverImage=${safeCover}&coverHeight=${this.coverHeight}`).then(() => {
         this.user.coverImage = this.selectCover;
+        this.user.coverHeight = this.coverHeight;
         sessionStorage.setItem('user', JSON.stringify(this.user));
         sessionStorage.setItem('coverHeight', this.coverHeight);
         this.event.$emit('user-info-updated', this.user);
         this.$message.success('背景更新成功！');
       });
+    },
+    // 拖动滑块松手即保存高度（不需要重新选图，也不会因为换会话丢失）
+    saveCoverHeight(val) {
+      if (!this.isSelf || !this.user || !this.user.id) return;
+      const cover = encodeURIComponent(this.user.coverImage || this.selectCover || '');
+      this.request
+          .post(`UpdateUserCover?userId=${this.user.id}&coverImage=${cover}&coverHeight=${val}`)
+          .then(() => {
+            this.user.coverHeight = val;
+            sessionStorage.setItem('coverHeight', val);
+            sessionStorage.setItem('user', JSON.stringify(this.user));
+            this.event.$emit('user-info-updated', this.user);
+            this.$message.success('背景高度已保存');
+          });
     }
   }
 }

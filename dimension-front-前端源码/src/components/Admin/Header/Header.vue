@@ -18,7 +18,7 @@
     </div>
     <!--注销按钮-->
     <div class="logout-button">
-      <el-button type="plain" @click="adminLogout">注销</el-button>
+      <el-button type="plain" size="small" icon="el-icon-switch-button" @click="adminLogout">退出登录</el-button>
     </div>
   </div>
 </template>
@@ -46,10 +46,18 @@ export default {
   },
   methods: {
     adminLogout() {
-      // 删除cookie的adminToken和admin
-      sessionStorage.clear()
-      // 跳转到管理员登录页
-      this.$router.push('/admin-login')
+      this.$confirm('确定要退出后台登录吗？', '提示', {
+        confirmButtonText: '退出',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 只清管理员凭证：不要 sessionStorage.clear()，否则会把前台用户的登录态一起清掉
+        sessionStorage.removeItem('adminToken')
+        sessionStorage.removeItem('admin')
+        this.$message.success('已退出后台登录')
+        this.$router.push('/admin-login')
+      }).catch(() => {
+      })
     }
   }
 }

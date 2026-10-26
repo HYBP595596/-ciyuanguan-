@@ -123,6 +123,9 @@ public class ImageServiceImpl implements ImageService {
             // 👇 新增：根据图片的 userId 查作者
             if (image.getUserId() != null) {
                 User author = userMapper.getUserInfo(image.getUserId());
+                if (author != null) {
+                    author.setPassword(null); // 详情接口不能带出密码
+                }
                 imageTag.setUser(author);
                 imageTag.setFansCount(0); // 粉丝数暂时填 0
             }
@@ -263,27 +266,43 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId) {
+    public void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId, String extraImages, String txtUrl) {
         // 1. 先处理标签：区分老 ID 和新输入的字符串
         List<Integer> finalTagIds = new ArrayList<>();
         if (rawTags != null) {
             for (Object tagObj : rawTags) {
                 if (tagObj instanceof Number) {
-                    // 如果是数字，说明是之前就有的老标签
-                    finalTagIds.add(((Number) tagObj).intValue());
-                } else if (tagObj instanceof String) {
-                    // 如果是字符串，说明是用户新输入的标签
-                    String tagName = (String) tagObj;
+                    // 数字 = 下拉里选中的已有标签
+                    Integer tagId = ((Number) tagObj).intValue();
+                    if (!finalTagIds.contains(tagId)) {
+                        finalTagIds.add(tagId);
+                    }
+                } else if (tagObj != null) {
+                    // 字符串 = 用户手打的新标签，必须和已有标签一样被保存
+                    String tagName = tagObj.toString().trim();
+                    if (tagName.isEmpty()) {
+                        continue;
+                    }
                     Tag existTag = tagMapper.getTagByName(tagName);
                     if (existTag != null) {
                         // 库里已经有了，直接用它的 ID
-                        finalTagIds.add(existTag.getId());
+                        if (!finalTagIds.contains(existTag.getId())) {
+                            finalTagIds.add(existTag.getId());
+                        }
                     } else {
                         // 库里没有，新建一个标签
                         Tag newTag = new Tag();
                         newTag.setName(tagName);
                         tagMapper.insertTag(newTag);
-                        finalTagIds.add(newTag.getId()); // 获取刚刚插入生成的新 ID
+                        Integer newId = newTag.getId(); // 获取刚刚插入生成的新 ID
+                        if (newId == null) {
+                            // 极端情况自增主键没回填，按名字再查一次，避免新标签被丢掉
+                            Tag created = tagMapper.getTagByName(tagName);
+                            newId = (created == null) ? null : created.getId();
+                        }
+                        if (newId != null && !finalTagIds.contains(newId)) {
+                            finalTagIds.add(newId);
+                        }
                     }
                 }
             }
@@ -301,6 +320,10 @@ public class ImageServiceImpl implements ImageService {
         image.setViews(0);
         image.setUserId(userId);
         image.setStatus(0); // 0表示待审核
+        // 多图：逗号分隔的附属图片地址，空串统一存 null
+        image.setExtraImages((extraImages == null || extraImages.trim().isEmpty()) ? null : extraImages.trim());
+        // 小说正文地址，其它类型存 null
+        image.setTxtUrl((txtUrl == null || txtUrl.trim().isEmpty()) ? null : txtUrl.trim());
 
         imageMapper.insertImage(image);
         long imageId = image.getId();
@@ -332,4 +355,79 @@ public class ImageServiceImpl implements ImageService {
     public long getCategoryImageTotal(Integer categoryId) {
         return imageMapper.getCategoryImageTotal(categoryId);
     }
+
+    @Override
+    public List<Image> getPendingImageList(Integer pageNum, Integer pageSize) {
+        return imageMapper.getPendingImageList(pageNum, pageSize);
+    }
+
+    @Override
+    public long getPendingTotal() {
+        return imageMapper.getPendingTotal();
+    }
+
+    /**
+     * 待审核列表（带标签），供后台审核页展示标签用。
+     * 与 getImageTagList 相同的组装方式，避免前端拿不到标签只能看到图片。
+     */
+    @Override
+    public List<ImageTagTZP> getPendingImageTagList(Integer pageNum, Integer pageSize) {
+        List<Image> pendingList = imageMapper.getPendingImageList(pageNum, pageSize);
+        List<ImageTagTZP> result = new ArrayList<>();
+        for (Image image : pendingList) {
+            List<Tag> tagList = imageMapper.getTagListByImageId(image.getId());
+            ImageTagTZP vo = new ImageTagTZP();
+            vo.setImage(image);
+            vo.setTagList(tagList);
+            result.add(vo);
+        }
+        return result;
+    }
+
+    @Override
+    public void auditImage(Long imageId, Integer status) {
+        imageMapper.auditImage(imageId, status);
+    }
+
+    @Override
+    public Image getImageById(Long imageId) {
+        return imageMapper.getImageById(imageId);
+    }
+
+    // ==================== 后台分类管理 ====================
+    @Override
+    public List<ImageTagTZP> getAdminImagesByCategory(Integer categoryId, Integer pageNum, Integer pageSize) {
+        List<Image> list = imageMapper.getAdminImagesByCategory(categoryId, pageNum, pageSize);
+        List<ImageTagTZP> result = new ArrayList<>();
+        for (Image img : list) {
+            ImageTagTZP vo = new ImageTagTZP();
+            vo.setImage(img);
+            vo.setTagList(imageMapper.getTagListByImageId(img.getId()));
+            result.add(vo);
+        }
+        return result;
+    }
+
+    @Override
+    public long getAdminCategoryImageTotal(Integer categoryId) {
+        return imageMapper.getAdminCategoryImageTotal(categoryId);
+    }
+
+    @Override
+    public boolean moveImageCategory(Long imageId, Integer categoryId) {
+        Image img = imageMapper.getImageById(imageId);
+        if (img == null || img.getCategoryId() == null || categoryId == null) {
+            return false;
+        }
+        if (img.getCategoryId().equals(categoryId)) {
+            return true; // 已经在目标分类
+        }
+        Integer oldCategory = img.getCategoryId();
+        imageMapper.updateImageCategoryByImageId(imageId, categoryId);
+        // 两个分类的计数按「已通过审核」的真实数量重算，避免累计误差
+        imageMapper.recalcCategoryCount(oldCategory);
+        imageMapper.recalcCategoryCount(categoryId);
+        return true;
+    }
+
 }

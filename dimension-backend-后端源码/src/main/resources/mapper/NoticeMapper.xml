@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.NoticeMapper">
+
+    <insert id="insertNotice" parameterType="com.dimension.entity.Notice"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_notice (title, content, admin_id, create_time)
+        VALUES (#{title}, #{content}, #{adminId}, NOW())
+    </insert>
+
+    <sql id="noticeQuery">
+        SELECT n.*, a.nickname AS adminNickname
+        FROM dimension_notice n
+                 LEFT JOIN dimension_admin a ON a.id = n.admin_id
+    </sql>
+
+    <select id="getNoticeList" resultType="com.dimension.entity.Notice">
+        <include refid="noticeQuery"/>
+        ORDER BY n.id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getNoticeTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_notice
+    </select>
+
+    <select id="getLatestNotices" resultType="com.dimension.entity.Notice">
+        <include refid="noticeQuery"/>
+        ORDER BY n.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="getNoticeById" resultType="com.dimension.entity.Notice">
+        <include refid="noticeQuery"/>
+        WHERE n.id = #{id}
+    </select>
+
+    <delete id="deleteNotice">
+        DELETE FROM dimension_notice WHERE id = #{id}
+    </delete>
+
+</mapper>

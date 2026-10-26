@@ -15,6 +15,10 @@ Vue.use(ElementUI);
 import request from '@/request/request'
 Vue.prototype.request = request
 
+// 封面缺省占位：小说允许无封面(url=null)，全站统一用纯白替代
+import { imageOrWhite } from '@/utils/image-fallback'
+Vue.prototype.$img = imageOrWhite
+
 import { initTheme } from '@/utils/theme'
 initTheme()
 

@@ -27,4 +27,8 @@ public class Admin {
      * 账号
      */
     private String username;
+    /**
+     * token 版本号：改密码后 +1，使此前签发的 token 全部失效
+     */
+    private Integer tokenVersion;
 }

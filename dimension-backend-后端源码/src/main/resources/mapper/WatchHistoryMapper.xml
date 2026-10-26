@@ -19,7 +19,7 @@
             <id property="id" column="dwh_id"></id>
             <result property="createTime" column="dwh_create_time"></result>
             <result property="imageId" column="dwh_image_id"></result>
-            <result property="userId" column="dwh_image_id"></result>
+            <result property="userId" column="dwh_user_id"></result>
         </association>
         <association property="category" javaType="com.dimension.entity.ImageCategory">
             <id property="id" column="dic_id"></id>

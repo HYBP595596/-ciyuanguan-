@@ -1,21 +1,22 @@
 <template>
   <!--新增图片页-->
-  <div class="body" style="margin-top: 5%">
+  <div class="body">
     <!--表单-->
-    <div class="add-image-form" style="margin-left: 15%">
+    <div class="add-image-form">
       <el-form :model="addImageForm" ref="addImageForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="图片">
 <!--          action="http://localhost:9000/dimension_dev_01_war_exploded/UploadImageOrUserAvatar"-->
           <el-upload
               class="avatar-uploader"
-              action="http://localhost:8081/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=illust"
+              action="/dimension_dev_01_war_exploded/UploadImageOrUserAvatar?type=illust"
+              :headers="uploadHeaders"
               :show-file-list="false"
               :before-upload="beforeUpload"
               :on-success="handleAvatarSuccess">
-            <div style="border: 1px dashed #ccc; height: 200px; width: 200px">
-              <img v-if="imageUrl" :src="imageUrl" class="avatar" style="height: 400px; width: 650px">
+            <div class="avatar-uploader-box">
+              <img v-if="imageUrl" :src="imageUrl" class="avatar-preview">
 <!--              <span style="font-size: 100px">+</span>-->
-              <i v-else class="el-icon-plus avatar-uploader-icon" style="text-align: center; line-height: 200px; font-size: 50px; color: #ccc"></i>
+              <i v-else class="el-icon-plus avatar-uploader-icon" style="font-size: 50px; color: #ccc"></i>
             </div>
           </el-upload>
         </el-form-item>
@@ -64,6 +65,17 @@ export default {
   mounted() {
     this.getCategoryList()
     this.getTagList()
+  },
+  computed: {
+    // 上传接口开启了鉴权，后台靠管理员 token 通过
+    uploadHeaders() {
+      const headers = {}
+      const adminToken = sessionStorage.getItem('adminToken')
+      if (adminToken) headers['AdminAuthentication'] = adminToken
+      const token = sessionStorage.getItem('token')
+      if (token) headers['Authentication'] = token
+      return headers
+    }
   },
   methods: {
     beforeUpload() {
@@ -117,6 +129,6 @@ save() {
 }
 </script>
 
-<style scoped>
+<style scoped src="./AddImage.css">
 
 </style>

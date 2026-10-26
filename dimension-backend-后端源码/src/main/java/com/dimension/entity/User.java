@@ -62,4 +62,9 @@ public class User {
      * 画师申请说明
      */
     private String artistApplyDesc;
+
+    /**
+     * 接稿展示开关: 0关闭, 1开启（只在 artistStatus=2 时生效）
+     */
+    private Integer acceptCommission;
 }

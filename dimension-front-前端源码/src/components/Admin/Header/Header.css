@@ -1,50 +1,79 @@
-.body-image2 {
-    transition: all 0.3s ease-out; /*设置过渡效果*/
-}
-.body-image2:hover {
-    transform: scale(1.05); /*鼠标移动到图片上时放大1.2倍*/
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
-}
+/* 后台页头：单行布局，所有内容必须完整落在 el-header 的 64px 高度内 */
 .body {
+    position: relative;
     display: flex;
+    align-items: center;
+    justify-content: flex-end; /* 右侧：头像 + 昵称 + 注销 */
+    height: 100%;
+    padding: 0 24px;
+    box-sizing: border-box;
+    gap: 16px;
 }
-.title{
-    font-size: 20px;
-    font-weight: bolder;
-    margin-left: 600px;
-    margin-top: 50px;
+/* 标题：绝对居中，不参与右侧流式布局 */
+.title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 50%;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none; /* 居中后不吃点击，避免压住底下的可点元素 */
 }
-/*头像 + 名字*/
-.admin-info{
-    margin-right: 20px;
-    margin-left: 250px;
-    /*border: 1px black solid;*/
-    width: 150px;
-    margin-top: 30px;
+/* 头像 + 名字 */
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto; /* 靠右对齐，不再用固定像素硬顶 */
 }
-/*头像*/
-.admin-avatar{
-    float: left;
+/* 头像 */
+.admin-avatar {
+    flex: 0 0 auto;
+    line-height: 0;
 }
 .admin-avatar img {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    object-fit: cover;
+    display: block;
 }
-/*名字*/
-.admin-nickname{
-    margin-left: 60px;
-    margin-top: 20px;
+/* 名字 */
+.admin-nickname {
+    color: var(--text-primary);
+    white-space: nowrap;
 }
-/*注销*/
-.logout-button{
-    margin-top: 40px;
+/* 注销 */
+.logout-button {
+    flex: 0 0 auto;
+}
+/* 窄屏：隐藏昵称并缩小标题，避免居中标题与右侧信息相互压住 */
+@media (max-width: 900px) {
+    .admin-nickname {
+        display: none;
+    }
+    .title {
+        font-size: 20px;
+    }
 }
 .body-image {
     transition: all 0.3s ease-out; /*设置过渡效果*/
 }
 .body-image:hover {
     cursor: pointer;
-    transform: scale(1.1); /*鼠标移动到图片上时放大1.2倍*/
+    transform: scale(1.1); /*鼠标移动到图片上时放大1.1倍*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
+}
+.body-image2 {
+    transition: all 0.3s ease-out; /*设置过渡效果*/
+}
+.body-image2:hover {
+    transform: scale(1.05); /*鼠标移动到图片上时放大1.05倍*/
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /*添加阴影效果*/
 }

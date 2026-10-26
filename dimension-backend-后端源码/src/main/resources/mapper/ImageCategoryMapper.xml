@@ -5,7 +5,7 @@
 <mapper namespace="com.dimension.mapper.ImageCategoryMapper">
 
     <select id="GetAllCategory" resultType="com.dimension.entity.ImageCategory">
-        select * from dimension_image_category order by sort desc
+        select * from dimension_image_category order by sort asc
     </select>
 
 </mapper>

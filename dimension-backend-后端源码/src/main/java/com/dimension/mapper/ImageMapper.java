@@ -106,9 +106,20 @@ public interface ImageMapper {
 
     long getCategoryImageTotal(@Param("categoryId") Integer categoryId);
 
+    /** 后台分类管理：某分类下的全部作品（含待审核/驳回） */
+    List<Image> getAdminImagesByCategory(@Param("categoryId") Integer categoryId,
+                                         @Param("pageNum") Integer pageNum,
+                                         @Param("pageSize") Integer pageSize);
+
+    long getAdminCategoryImageTotal(@Param("categoryId") Integer categoryId);
+
+    /** 按「已通过审核」的实际数量重算分类计数，保证迁移后计数准确 */
+    void recalcCategoryCount(@Param("categoryId") Integer categoryId);
+
     List<Image> getPendingImageList(@Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize);
 
     long getPendingTotal();
 
+    void auditImage(@Param("imageId") Long imageId, @Param("status") Integer status);
 
 }

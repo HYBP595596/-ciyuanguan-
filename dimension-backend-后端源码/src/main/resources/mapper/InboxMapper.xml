@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dimension.mapper.InboxMapper">
+
+    <!-- ==================== 已读水位 ==================== -->
+    <select id="getLastId" resultType="java.lang.Long">
+        SELECT last_id FROM dimension_user_read WHERE user_id = #{userId} AND type = #{type}
+    </select>
+
+    <insert id="upsertLastId">
+        INSERT INTO dimension_user_read (user_id, type, last_id)
+        VALUES (#{userId}, #{type}, #{lastId})
+        ON DUPLICATE KEY UPDATE last_id = GREATEST(last_id, #{lastId})
+    </insert>
+
+    <!-- ==================== 未读数 ==================== -->
+    <select id="countReplies" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_comment c
+            INNER JOIN dimension_image i ON i.id = c.image_id
+        WHERE i.user_id = #{userId} AND c.user_id != #{userId} AND c.id > #{sinceId}
+    </select>
+
+    <select id="countMentions" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_comment c
+        WHERE c.content LIKE CONCAT('%@', #{nickname}, '%')
+          AND c.user_id != #{userId} AND c.id > #{sinceId}
+    </select>
+
+    <select id="countAnnounces" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_notice WHERE id > #{sinceId}
+    </select>
+
+    <select id="countWorkUpdates" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_image i
+            INNER JOIN dimension_follow f ON f.followed_user_id = i.user_id
+        WHERE f.user_id = #{userId} AND i.status = 1 AND i.id > #{sinceId}
+    </select>
+
+    <!-- ==================== 消息（私信 + 评论回复 + @提及） ==================== -->
+    <select id="getMessageItems" resultType="com.dimension.entity.InboxItem">
+        SELECT * FROM (
+            SELECT 'PRIVATE' AS type,
+                   m.id AS refId,
+                   m.sender_id AS actorId,
+                   u.nickname AS actorName,
+                   u.avatar AS actorAvatar,
+                   NULL AS title,
+                   m.content AS content,
+                   NULL AS imageId,
+                   m.create_time AS createTime,
+                   m.is_read AS isReadFlag
+            FROM dimension_message m
+                     LEFT JOIN dimension_user u ON u.id = m.sender_id
+            WHERE m.receiver_id = #{userId}
+
+            UNION ALL
+
+            SELECT 'REPLY', c.id, c.user_id, u.nickname, u.avatar, NULL,
+                   c.content, c.image_id, c.create_time, 1
+            FROM dimension_comment c
+                     INNER JOIN dimension_image i ON i.id = c.image_id
+                     LEFT JOIN dimension_user u ON u.id = c.user_id
+            WHERE i.user_id = #{userId} AND c.user_id != #{userId}
+
+            UNION ALL
+
+            SELECT 'MENTION', c.id, c.user_id, u.nickname, u.avatar, NULL,
+                   c.content, c.image_id, c.create_time, 1
+            FROM dimension_comment c
+                     LEFT JOIN dimension_user u ON u.id = c.user_id
+            WHERE c.content LIKE CONCAT('%@', #{nickname}, '%') AND c.user_id != #{userId}
+        ) t
+        ORDER BY t.createTime DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <!-- ==================== 通知（公告 + 关注画师的作品更新） ==================== -->
+    <select id="getNoticeItems" resultType="com.dimension.entity.InboxItem">
+        SELECT * FROM (
+            SELECT 'ANNOUNCE' AS type,
+                   n.id AS refId,
+                   NULL AS actorId,
+                   '系统公告' AS actorName,
+                   NULL AS actorAvatar,
+                   n.title AS title,
+                   n.content AS content,
+                   NULL AS imageId,
+                   n.create_time AS createTime
+            FROM dimension_notice n
+
+            UNION ALL
+
+            SELECT 'WORK_UPDATE', i.id, i.user_id, u.nickname, u.avatar, NULL,
+                   NULL, i.id, i.create_time
+            FROM dimension_image i
+                     INNER JOIN dimension_follow f ON f.followed_user_id = i.user_id
+                     LEFT JOIN dimension_user u ON u.id = i.user_id
+            WHERE f.user_id = #{userId} AND i.status = 1
+        ) t
+        ORDER BY t.createTime DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <!-- ==================== 最大 id（打水位） ==================== -->
+    <select id="getMaxReplyId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(c.id), 0) FROM dimension_comment c
+            INNER JOIN dimension_image i ON i.id = c.image_id
+        WHERE i.user_id = #{userId} AND c.user_id != #{userId}
+    </select>
+
+    <select id="getMaxMentionId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(c.id), 0) FROM dimension_comment c
+        WHERE c.content LIKE CONCAT('%@', #{nickname}, '%') AND c.user_id != #{userId}
+    </select>
+
+    <select id="getMaxAnnounceId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(id), 0) FROM dimension_notice
+    </select>
+
+    <select id="getMaxWorkUpdateId" resultType="java.lang.Long">
+        SELECT COALESCE(MAX(i.id), 0) FROM dimension_image i
+            INNER JOIN dimension_follow f ON f.followed_user_id = i.user_id
+        WHERE f.user_id = #{userId} AND i.status = 1
+    </select>
+
+</mapper>

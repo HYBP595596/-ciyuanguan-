@@ -3,7 +3,62 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dimension.mapper.AdminMapper">
-    <select id="adminLogin" resultType="com.dimension.entity.Admin">
-        select * from dimension_admin where username = #{username} and password = #{password}
+
+    <sql id="baseColumns">
+        id, avatar, nickname, username, password, token_version
+    </sql>
+
+    <select id="getAdminByUsername" resultType="com.dimension.entity.Admin">
+        SELECT <include refid="baseColumns"/>
+        FROM dimension_admin WHERE username = #{username} LIMIT 1
     </select>
+
+    <select id="getAdminById" resultType="com.dimension.entity.Admin">
+        SELECT <include refid="baseColumns"/>
+        FROM dimension_admin WHERE id = #{id}
+    </select>
+
+    <select id="getAdminList" resultType="com.dimension.entity.Admin">
+        SELECT <include refid="baseColumns"/>
+        FROM dimension_admin ORDER BY id ASC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getAdminTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_admin
+    </select>
+
+    <select id="countAdmins" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_admin
+    </select>
+
+    <insert id="insertAdmin" parameterType="com.dimension.entity.Admin"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_admin (avatar, nickname, username, password)
+        VALUES (#{avatar}, #{nickname}, #{username}, #{password})
+    </insert>
+
+    <update id="updateAdminInfo">
+        UPDATE dimension_admin
+        SET username = #{username}, nickname = #{nickname}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAdminPassword">
+        UPDATE dimension_admin SET password = #{password} WHERE id = #{id}
+    </update>
+
+    <select id="getTokenVersion" resultType="java.lang.Integer">
+        SELECT token_version FROM dimension_admin WHERE id = #{id}
+    </select>
+
+    <!-- 改密码后让该管理员此前的所有 token 失效 -->
+    <update id="bumpTokenVersion">
+        UPDATE dimension_admin SET token_version = token_version + 1 WHERE id = #{id}
+    </update>
+
+    <delete id="deleteAdmin">
+        DELETE FROM dimension_admin WHERE id = #{id}
+    </delete>
+
 </mapper>

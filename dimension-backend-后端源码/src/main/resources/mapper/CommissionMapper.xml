@@ -4,25 +4,162 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dimension.mapper.CommissionMapper">
 
+    <!-- ==================== 方案(档期) ==================== -->
+    <select id="getPlanById" resultType="com.dimension.entity.CommissionPlan">
+        SELECT p.*, u.nickname AS artistNickname, u.avatar AS artistAvatar
+        FROM dimension_commission_plan p
+                 LEFT JOIN dimension_user u ON u.id = p.artist_id
+        WHERE p.id = #{planId}
+    </select>
+
+    <select id="getPlansByArtist" resultType="com.dimension.entity.CommissionPlan">
+        SELECT * FROM dimension_commission_plan
+        WHERE artist_id = #{artistId}
+        <if test="onlyOnline != null and onlyOnline == 1">
+            AND status = 1
+        </if>
+        ORDER BY id DESC
+    </select>
+
+    <insert id="insertPlan" parameterType="com.dimension.entity.CommissionPlan"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_commission_plan
+            (artist_id, title, price, delivery_days, cover_url, status, content_type, create_time)
+        VALUES
+            (#{artistId}, #{title}, #{price}, #{deliveryDays}, #{coverUrl}, #{status}, #{contentType}, NOW())
+    </insert>
+
+    <update id="updatePlanStatus">
+        UPDATE dimension_commission_plan
+        SET status = #{status}
+        WHERE id = #{planId} AND artist_id = #{artistId}
+    </update>
+
+    <select id="getOnlinePlans" resultType="com.dimension.entity.CommissionPlan">
+        SELECT p.*, u.nickname AS artistNickname, u.avatar AS artistAvatar
+        FROM dimension_commission_plan p
+                 INNER JOIN dimension_user u ON u.id = p.artist_id
+        WHERE p.status = 1 AND u.artist_status = 2
+        ORDER BY p.id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getOnlinePlanTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_commission_plan p
+            INNER JOIN dimension_user u ON u.id = p.artist_id
+        WHERE p.status = 1 AND u.artist_status = 2
+    </select>
+
+    <!-- ==================== 画师广场 ==================== -->
+    <select id="getAcceptingArtists" resultType="com.dimension.entity.User">
+        SELECT * FROM dimension_user
+        WHERE artist_status = 2 AND accept_commission = 1
+        ORDER BY id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getAcceptingArtistTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_user WHERE artist_status = 2 AND accept_commission = 1
+    </select>
+
+    <select id="getArtistById" resultType="com.dimension.entity.User">
+        SELECT * FROM dimension_user WHERE id = #{artistId}
+    </select>
+
+    <update id="updateAcceptCommission">
+        UPDATE dimension_user SET accept_commission = #{accept} WHERE id = #{userId}
+    </update>
+
+    <!-- ==================== 订单 ==================== -->
+    <insert id="insertOrder" parameterType="com.dimension.entity.CommissionOrder"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dimension_commission_order
+            (order_no, plan_id, buyer_id, artist_id, requirement, amount, status, content_type, create_time, update_time)
+        VALUES
+            (#{orderNo}, #{planId}, #{buyerId}, #{artistId}, #{requirement}, #{amount}, #{status}, #{contentType}, NOW(), NOW())
+    </insert>
+
+    <sql id="orderJoin">
+        SELECT o.*,
+               p.title        AS planTitle,
+               p.delivery_days AS deliveryDays,
+               b.nickname     AS buyerNickname,
+               b.avatar       AS buyerAvatar,
+               a.nickname     AS artistNickname,
+               a.avatar       AS artistAvatar
+        FROM dimension_commission_order o
+                 LEFT JOIN dimension_commission_plan p ON p.id = o.plan_id
+                 LEFT JOIN dimension_user b ON b.id = o.buyer_id
+                 LEFT JOIN dimension_user a ON a.id = o.artist_id
+    </sql>
+
+    <select id="getOrderByNo" resultType="com.dimension.entity.CommissionOrder">
+        <include refid="orderJoin"/>
+        WHERE o.order_no = #{orderNo}
+    </select>
+
+    <select id="getOrderById" resultType="com.dimension.entity.CommissionOrder">
+        <include refid="orderJoin"/>
+        WHERE o.id = #{orderId}
+    </select>
+
+    <select id="getOrdersByBuyer" resultType="com.dimension.entity.CommissionOrder">
+        <include refid="orderJoin"/>
+        WHERE o.buyer_id = #{buyerId}
+        ORDER BY o.id DESC
+    </select>
+
+    <select id="getOrdersByArtist" resultType="com.dimension.entity.CommissionOrder">
+        <include refid="orderJoin"/>
+        WHERE o.artist_id = #{artistId}
+        ORDER BY o.id DESC
+    </select>
+
+    <update id="updateOrderStatus">
+        UPDATE dimension_commission_order SET status = #{status}, update_time = NOW() WHERE id = #{orderId}
+    </update>
+
+    <update id="setDeliveryPreview">
+        UPDATE dimension_commission_order
+        SET delivery_preview = #{url}, status = 2, update_time = NOW()
+        WHERE id = #{orderId}
+    </update>
+
+    <update id="setDeliveryFinal">
+        UPDATE dimension_commission_order
+        SET delivery_final = #{url}, status = 2, update_time = NOW()
+        WHERE id = #{orderId}
+    </update>
+
     <update id="updateOrderStatusByOrderNo">
-        UPDATE dimension_commission_order SET status = #{status} WHERE order_no = #{orderNo}
+        UPDATE dimension_commission_order SET status = #{status}, update_time = NOW() WHERE order_no = #{orderNo}
     </update>
 
     <update id="updateTransactionId">
         UPDATE dimension_commission_order SET transaction_id = #{transactionId} WHERE order_no = #{orderNo}
     </update>
 
+    <!-- ==================== 流水 / 日志 ==================== -->
     <insert id="insertTransaction" parameterType="com.dimension.entity.Transaction">
         INSERT INTO dimension_transaction
-        (order_no, buyer_id, artist_id, amount, type, transaction_id, create_time)
+            (order_no, buyer_id, artist_id, amount, type, transaction_id, create_time)
         VALUES
             (#{orderNo}, #{buyerId}, #{artistId}, #{amount}, #{type}, #{transactionId}, NOW())
     </insert>
 
-    <!-- 巧妙使用 SELECT 避免从前端传 orderId -->
+    <select id="getTransactionsByOrderNo" resultType="com.dimension.entity.Transaction">
+        SELECT * FROM dimension_transaction WHERE order_no = #{orderNo} ORDER BY id ASC
+    </select>
+
+    <!-- 巧用 SELECT 避免从前端传 orderId -->
     <insert id="insertOrderLogByOrderNo">
         INSERT INTO dimension_order_log (order_id, operator_id, action)
         SELECT id, #{operatorId}, #{action} FROM dimension_commission_order WHERE order_no = #{orderNo}
+    </insert>
+
+    <insert id="insertOrderLog">
+        INSERT INTO dimension_order_log (order_id, operator_id, action)
+        VALUES (#{orderId}, #{operatorId}, #{action})
     </insert>
 
 </mapper>

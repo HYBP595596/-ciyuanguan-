@@ -42,7 +42,7 @@
             :key="index"
             @click="clickImage(item.image.id)">
           <div class="image-detail">
-            <img :src="item.image.url" alt=""/>
+            <img :src="$img(item.image.url)" alt=""/>
           </div>
 
           <div class="score-collects-views">

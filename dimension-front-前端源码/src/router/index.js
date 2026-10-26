@@ -45,6 +45,30 @@ const routes = [
         path: '/publish',
         name: 'publish',
         component: () => import('@/views/Index/Publish/Publish')
+      },
+      {
+        // 约稿中心：广场 / 我的约稿 / 画师中心
+        path: '/commission',
+        name: 'commission',
+        component: () => import('@/views/Commission/CommissionCenter')
+      },
+      {
+        // 私信
+        path: '/messages',
+        name: 'messages',
+        component: () => import('@/views/Message/MessageCenter')
+      },
+      {
+        // 全站公告
+        path: '/notices',
+        name: 'notices',
+        component: () => import('@/views/Notice/NoticeList')
+      },
+      {
+        // 消息中心：消息（私信/评论回复/@提及）+ 通知（公告/作品更新）
+        path: '/inbox',
+        name: 'inbox',
+        component: () => import('@/views/Inbox/InboxPage')
       }
     ],
   },
@@ -90,6 +114,24 @@ const routes = [
         path: '/artist-management',
         name: 'artist-management',
         component: () => import('@/views/Admin/AdminIndex/ArtistManagement/ArtistManagement')
+      },
+      // 分类管理：管理作品所属的类型
+      {
+        path: '/category-management',
+        name: 'category-management',
+        component: () => import('@/views/Admin/AdminIndex/CategoryManagement/CategoryManagement')
+      },
+      // 公告管理
+      {
+        path: '/notice-management',
+        name: 'notice-management',
+        component: () => import('@/views/Admin/AdminIndex/NoticeManagement/NoticeManagement')
+      },
+      // 管理员账号管理
+      {
+        path: '/admin-account-management',
+        name: 'admin-account-management',
+        component: () => import('@/views/Admin/AdminIndex/AdminAccountManagement/AdminAccountManagement')
       }
     ]
   }
@@ -119,7 +161,10 @@ router.beforeEach((to, from, next) => {
       to.path.includes('/artist-management') ||
       to.path.includes('/image-management') ||
       to.path.includes('/user-management') ||
-      to.path.includes('/comment-management');
+      to.path.includes('/comment-management') ||
+      to.path.includes('/category-management') ||
+      to.path.includes('/notice-management') ||
+      to.path.includes('/admin-account-management');
 
   if (isAdminPage) {
     // 如果是去后台，必须携带 adminToken

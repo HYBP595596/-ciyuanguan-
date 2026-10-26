@@ -16,9 +16,13 @@
     flex: 1;
 }
 
+/* 作品缩略图：固定高度，避免长图/漫画把表格行撑高 */
 .image-image {
     width: 200px;
+    height: 120px;
+    display: block;
     object-fit: cover;
+    border-radius: 6px;
 }
 
 /* 分页器 */

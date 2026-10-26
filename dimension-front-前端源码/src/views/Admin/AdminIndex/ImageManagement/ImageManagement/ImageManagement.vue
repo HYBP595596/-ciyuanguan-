@@ -24,7 +24,7 @@
               label="图片"
               width="250">
             <template slot-scope="scope">
-                <img :src="scope.row.image.url" class="image-image"/>
+                <img :src="$img(scope.row.image.url)" class="image-image"/>
             </template>
           </el-table-column>
           <el-table-column
@@ -188,20 +188,36 @@ export default {
     },
     // 删除图片
     deleteImage(row) {
-      this.request.post(`RemoveImageById?imageId=${row.image.id}`).then(res => {
-        this.$message.success('删除成功')
-        // 重新查询
+      this.request.post(`RemoveImageById?imageId=${row.image.id}&adminId=${this.currentAdminId()}`).then(res => {
+        if (res && res.flag === 0) {
+          this.$message.success('删除成功')
+        } else {
+          this.$message.error((res && res.message) || '删除失败')
+        }
         this.research()
       })
     },
     // 保存修改图片
     save() {
-      this.request.post(`UpdateImage`, this.updateImageForm).then(res => {
-        this.$message.success('修改成功')
+      const payload = Object.assign({}, this.updateImageForm, { adminId: this.currentAdminId() })
+      this.request.post(`UpdateImage`, payload).then(res => {
+        if (res && res.flag === 0) {
+          this.$message.success('修改成功')
+        } else {
+          this.$message.error((res && res.message) || '修改失败')
+        }
         this.updateImageDialogVisible = false
-        // 重新查询
         this.research()
       })
+    },
+    // 当前管理员 id（UpdateImage / RemoveImageById 的权限校验用）
+    currentAdminId() {
+      try {
+        const a = JSON.parse(sessionStorage.getItem('admin') || '{}')
+        return a.id || 1
+      } catch (e) {
+        return 1
+      }
     },
     research() {
       if (this.isInSearch) {

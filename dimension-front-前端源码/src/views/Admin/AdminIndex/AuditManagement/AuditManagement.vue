@@ -10,24 +10,48 @@
         <template slot-scope="scope">
           <el-image
               style="width: 150px; height: 100px; border-radius: 8px;"
-              :src="scope.row.url"
-              :preview-src-list="[scope.row.url]">
+              :src="$img(scope.row.image.url)"
+              :preview-src-list="[$img(scope.row.image.url)]">
           </el-image>
         </template>
       </el-table-column>
 
-      <el-table-column prop="id" label="图片ID" width="100"></el-table-column>
-      <el-table-column prop="userId" label="上传者ID" width="120"></el-table-column>
+      <el-table-column label="类型" width="110">
+        <template slot-scope="scope">
+          <el-tag size="mini" type="info">{{ categoryName(scope.row.image) }}</el-tag>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="标签" min-width="220">
+        <template slot-scope="scope">
+          <el-tag
+              v-for="(tag, index) in scope.row.tagList"
+              :key="index"
+              size="mini"
+              type="danger"
+              style="margin: 2px 4px 2px 0;">
+            {{ tag.name }}
+          </el-tag>
+          <span v-if="!scope.row.tagList || scope.row.tagList.length === 0" style="color: #bbb;">无标签</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="图片ID" width="100">
+        <template slot-scope="scope">{{ scope.row.image.id }}</template>
+      </el-table-column>
+      <el-table-column label="上传者ID" width="120">
+        <template slot-scope="scope">{{ scope.row.image.userId }}</template>
+      </el-table-column>
       <el-table-column label="上传时间" width="180">
         <template slot-scope="scope">
-          {{ formatTime(scope.row.createTime) }}
+          {{ formatTime(scope.row.image.createTime) }}
         </template>
       </el-table-column>
 
       <el-table-column align="center" label="操作" width="250">
         <template slot-scope="scope">
-          <el-button type="success" size="small" @click="handleAudit(scope.row.id, 1)">通过上架</el-button>
-          <el-button type="danger" size="small" @click="handleAudit(scope.row.id, 2)">驳回</el-button>
+          <el-button type="success" size="small" @click="handleAudit(scope.row.image.id, 1)">通过上架</el-button>
+          <el-button type="danger" size="small" @click="handleAudit(scope.row.image.id, 2)">驳回</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,6 +80,8 @@ export default {
     return {
       loading: false,
       pendingList: [],
+      // 分类 id -> 名称，复用现成的 GetAllCategory 接口
+      categoryMap: {},
       pagination: {
         currentPage: 1,
         pageSize: 5,
@@ -64,9 +90,23 @@ export default {
     }
   },
   mounted() {
+    this.getCategoryList();
     this.getPendingList();
   },
   methods: {
+    getCategoryList() {
+      this.request.get('GetAllCategory').then(res => {
+        const map = {};
+        (res && res.categoryList ? res.categoryList : []).forEach(c => {
+          map[c.id] = c.name;
+        });
+        this.categoryMap = map;
+      });
+    },
+    categoryName(image) {
+      if (!image) return '';
+      return this.categoryMap[image.categoryId] || ('分类' + image.categoryId);
+    },
     formatTime(time) { return format1(time) },
     getPendingList() {
       this.loading = true;

@@ -2,6 +2,7 @@ package com.dimension.service;
 
 import com.dimension.vo.ImageTagCategory;
 import com.dimension.vo.ImageTagTZP;
+import com.dimension.entity.Image;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public interface ImageService {
 
     void updateImageTagsAndCategory(Integer categoryId, List<Integer> tagIds, Long imageId);
 
-    void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId);
+    void addImage(String url, Integer categoryId, List<Object> rawTags, Long userId, String extraImages, String txtUrl);
 
     void computeImageScore(Long imageId, Integer likes, Integer dislikes);
 
@@ -39,6 +40,9 @@ public interface ImageService {
 
     ImageTagTZP GetImageDetailById(long imageId);
 
+    /** 按 id 取作品（权限校验用） */
+    Image getImageById(Long imageId);
+
     List<ImageTagTZP> getRecommendImageList(Integer categoryId, long imageId);
 
 
@@ -49,5 +53,22 @@ public interface ImageService {
     void imageCommentsDecrement(Long imageId);
 
     long getCategoryImageTotal(Integer categoryId);
+
+    /** 后台分类管理：某分类下的作品（含标签） */
+    List<ImageTagTZP> getAdminImagesByCategory(Integer categoryId, Integer pageNum, Integer pageSize);
+
+    long getAdminCategoryImageTotal(Integer categoryId);
+
+    /** 把作品移到另一个分类（只改分类，不动标签） */
+    boolean moveImageCategory(Long imageId, Integer categoryId);
+
+    List<Image> getPendingImageList(Integer pageNum, Integer pageSize);
+
+    /** 待审核列表（带标签），后台审核页用 */
+    List<ImageTagTZP> getPendingImageTagList(Integer pageNum, Integer pageSize);
+
+    long getPendingTotal();
+
+    void auditImage(Long imageId, Integer status);
 
 }

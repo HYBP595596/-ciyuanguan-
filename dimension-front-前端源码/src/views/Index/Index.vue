@@ -60,5 +60,7 @@ export default {
   overflow-x: hidden;
   background: var(--bg-page);
   color: var(--text-primary);
+  /* 滚动条常驻占位：内容长短变化时不会出现/消失，页面不抖动 */
+  scrollbar-gutter: stable;
 }
 </style>

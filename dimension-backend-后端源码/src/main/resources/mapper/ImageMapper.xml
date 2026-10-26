@@ -14,10 +14,10 @@
         </selectKey>
         insert into dimension_image (category_id, url, score,
         collects, create_time, comments,
-        votes, views, user_id, status)
+        votes, views, user_id, status, extra_images, txt_url)
         values (#{categoryId}, #{url}, #{score},
         #{collects}, #{createTime}, #{comments},
-        #{votes}, #{views}, #{userId}, #{status})
+        #{votes}, #{views}, #{userId}, #{status}, #{extraImages}, #{txtUrl})
     </insert>
 
 
@@ -229,6 +229,25 @@
         WHERE category_id = #{categoryId} AND status = 1
     </select>
 
+    <!-- 后台分类管理：某分类下的全部作品（含待审核/驳回） -->
+    <select id="getAdminImagesByCategory" resultType="com.dimension.entity.Image">
+        SELECT * FROM dimension_image
+        WHERE category_id = #{categoryId}
+        ORDER BY id DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getAdminCategoryImageTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM dimension_image WHERE category_id = #{categoryId}
+    </select>
+
+    <update id="recalcCategoryCount">
+        UPDATE dimension_image_category c
+        SET c.count = (SELECT COUNT(*) FROM dimension_image i
+                       WHERE i.category_id = c.id AND i.status = 1)
+        WHERE c.id = #{categoryId}
+    </update>
+
     <!-- 查询待审核的图片列表 -->
     <select id="getPendingImageList" resultType="com.dimension.entity.Image">
         SELECT * FROM dimension_image
@@ -241,5 +260,9 @@
     <select id="getPendingTotal" resultType="java.lang.Long">
         SELECT COUNT(*) FROM dimension_image WHERE status = 0
     </select>
+
+    <update id="auditImage">
+        UPDATE dimension_image SET status = #{status} WHERE id = #{imageId}
+    </update>
 
 </mapper>

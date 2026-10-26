@@ -22,16 +22,46 @@ import java.nio.file.StandardCopyOption; // 👈 新增导入，用于覆盖文�
 public class UploadImageOrUserAvatar extends BaseImageServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Part filePart = req.getPart("file");
+        Part filePart = null;
+        try {
+            filePart = req.getPart("file");
+        } catch (ServletException | IllegalStateException e) {
+            // 不是 multipart 请求（或超出 @MultipartConfig 限制）：按业务错误返回，不要抛 500
+            JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
+                    .put("flag", 1)
+                    .put("message", "上传格式不正确，请用表单方式上传文件")
+                    .build());
+            return;
+        }
+        if (filePart == null || filePart.getSize() == 0) {
+            JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
+                    .put("flag", 1)
+                    .put("message", "没有收到文件，请重新选择后上传")
+                    .build());
+            return;
+        }
         String fileName = filePart.getSubmittedFileName();
 
-        // 1. 获取前端传来的类型：avatar / cover / illust
+        // 1. 获取前端传来的类型：avatar / cover / illust / novel
         String type = req.getParameter("type");
+
+        // 小说正文限制 5MB（前端也会拦，这里是服务端兜底）
+        long MAX_NOVEL_BYTES = 5L * 1024 * 1024;
+        if ("novel".equals(type) && filePart.getSize() > MAX_NOVEL_BYTES) {
+            JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
+                    .put("message", "正文文件不能超过 5MB（约 170 万字）")
+                    .build());
+            return;
+        }
+
         String subFolder = "";
         if ("avatar".equals(type)) {
             subFolder = "用户头像";
         } else if ("cover".equals(type)) {
             subFolder = "用户背景";
+        } else if ("novel".equals(type)) {
+            // 小说正文(.txt)单独放一个目录，和插画/漫画分开
+            subFolder = "小说";
         } else {
             subFolder = "插画";
         }

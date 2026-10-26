@@ -16,7 +16,7 @@
             label="图片"
             width="250">
           <template slot-scope="scope">
-              <img :src="scope.row.image.url" class="image-image"/>
+              <img :src="$img(scope.row.image.url)" class="image-image"/>
           </template>
         </el-table-column>
         <el-table-column
