@@ -56,10 +56,11 @@
         </el-table-column>
         <el-table-column
             label="状态"
-            width="50">
+            width="80">
           <template slot-scope="scope">
             <el-tag type="success" v-show="scope.row.status == 0">正常</el-tag>
             <el-tag type="danger" v-show="scope.row.status == 1">禁用</el-tag>
+            <el-tag type="info" v-show="scope.row.status == 2">已注销</el-tag>
           </template>
         </el-table-column>
         <el-table-column align="center" label="操作">

@@ -4,7 +4,18 @@
 
       <!-- ============ 约稿广场 ============ -->
       <el-tab-pane label="约稿广场" name="square">
-        <el-empty v-if="!artistList.length" description="暂时没有接稿中的画师"></el-empty>
+        <div class="cc-filter">
+          <span class="cc-muted">约稿类型</span>
+          <el-select v-model="squareType" size="small" style="width:120px" @change="onTypeChange">
+            <el-option :value="0" label="全部"></el-option>
+            <el-option :value="1" label="插画"></el-option>
+            <el-option :value="2" label="漫画"></el-option>
+            <el-option :value="3" label="小说"></el-option>
+          </el-select>
+        </div>
+        <el-empty
+            v-if="!artistList.length"
+            :description="squareType ? '当前类型下还没有接稿中的画师，换个类型试试' : '暂时没有接稿中的画师'"></el-empty>
         <div class="cc-square" v-else>
           <div class="cc-artists">
             <div
@@ -21,9 +32,10 @@
           <div class="cc-plans" v-if="selectedArtist">
             <h3>{{ selectedArtist.nickname || ('用户' + selectedArtist.id) }} 的接稿方案</h3>
             <div class="cc-plan" v-for="p in artistPlans" :key="p.id">
+              <img v-if="p.coverUrl" :src="$img(p.coverUrl)" class="cc-plan-cover" alt=""/>
               <div class="cc-plan-main">
                 <div class="cc-plan-title">{{ p.title }}</div>
-                <div class="cc-plan-meta">￥{{ p.price }} · {{ p.deliveryDays }} 天交稿</div>
+                <div class="cc-plan-meta">￥{{ p.price }} · {{ p.deliveryDays }} 天交稿 · {{ typeText(p.contentType) }}</div>
               </div>
               <el-button type="primary" size="small" @click="openOrderDialog(p)">约稿</el-button>
             </div>
@@ -131,7 +143,10 @@
             </el-table-column>
           </el-table>
 
-          <h3>我的方案</h3>
+          <div class="cc-plan-head">
+            <h3>我的方案</h3>
+            <span class="cc-muted">「新增并上架」会立刻出现在约稿广场；拿不准就先「存为草稿」，之后在表格里点「上架」。</span>
+          </div>
           <div class="cc-add-plan">
             <el-input v-model="planForm.title" placeholder="方案标题，如 Q版头像" style="width:180px"/>
             <el-select v-model="planForm.contentType" placeholder="类型" style="width:110px">
@@ -141,10 +156,22 @@
             </el-select>
             <el-input v-model="planForm.price" placeholder="价格" style="width:100px"/>
             <el-input v-model="planForm.deliveryDays" placeholder="交稿天数" style="width:100px"/>
-            <el-button type="primary" size="small" @click="addPlan">新增方案</el-button>
+            <el-input v-model="planForm.coverUrl" placeholder="封面图 URL（可选）" style="width:210px"/>
+            <el-button type="primary" size="small" :loading="planSaving" @click="addPlan(1)">新增并上架</el-button>
+            <el-button size="small" :loading="planSaving" @click="addPlan(0)">存为草稿</el-button>
           </div>
-          <el-table :data="myPlans" stripe style="width:100%;margin-top:12px">
-            <el-table-column prop="title" label="方案" min-width="160"></el-table-column>
+          <el-table
+              :data="myPlans"
+              stripe
+              style="width:100%;margin-top:12px"
+              empty-text="还没有接稿方案：填好上面的标题、类型、价格、交稿天数，点「新增并上架」或「存为草稿」">
+            <el-table-column label="封面" width="86">
+              <template slot-scope="s">
+                <img v-if="s.row.coverUrl" :src="$img(s.row.coverUrl)" class="cc-thumb" alt=""/>
+                <span v-else class="cc-muted">无</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="title" label="方案" min-width="150"></el-table-column>
             <el-table-column label="类型" width="90">
               <template slot-scope="s">{{ typeText(s.row.contentType) }}</template>
             </el-table-column>
@@ -152,16 +179,24 @@
             <el-table-column prop="deliveryDays" label="交稿天数" width="100"></el-table-column>
             <el-table-column label="状态" width="110">
               <template slot-scope="s">
-                <el-tag size="mini" :type="s.row.status === 1 ? 'success' : 'info'">
-                  {{ s.row.status === 1 ? '上架中' : '已下架' }}
-                </el-tag>
+                <el-tag size="mini" :type="planStatusType(s.row.status)">{{ planStatusText(s.row.status) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="140">
+            <el-table-column label="操作" width="230">
               <template slot-scope="s">
-                <el-button size="mini" @click="setPlanStatus(s.row, s.row.status === 1 ? 2 : 1)">
-                  {{ s.row.status === 1 ? '下架' : '上架' }}
-                </el-button>
+                <el-button
+                    v-if="s.row.status === 1"
+                    size="mini"
+                    type="danger"
+                    plain
+                    @click="setPlanStatus(s.row, 2)">下架</el-button>
+                <el-button
+                    v-else
+                    size="mini"
+                    type="success"
+                    @click="setPlanStatus(s.row, 1)">{{ s.row.status === 0 ? '上架' : '重新上架' }}</el-button>
+                <el-button size="mini" @click="openPlanEdit(s.row)">编辑</el-button>
+                <el-button size="mini" type="danger" plain @click="removePlan(s.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -228,6 +263,42 @@
       </span>
     </el-dialog>
 
+    <!-- 编辑方案 -->
+    <el-dialog title="编辑方案" :visible.sync="planEditVisible" width="480px">
+      <el-form label-width="90px">
+        <el-form-item label="方案标题">
+          <el-input v-model="planEditForm.title" placeholder="如 Q版头像"/>
+        </el-form-item>
+        <el-form-item label="类型">
+          <el-select v-model="planEditForm.contentType" style="width:100%">
+            <el-option :value="1" label="插画"></el-option>
+            <el-option :value="2" label="漫画"></el-option>
+            <el-option :value="3" label="小说"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="价格">
+          <el-input v-model="planEditForm.price" placeholder="单位：元"/>
+        </el-form-item>
+        <el-form-item label="交稿天数">
+          <el-input v-model="planEditForm.deliveryDays" placeholder="单位：天"/>
+        </el-form-item>
+        <el-form-item label="封面图">
+          <el-input v-model="planEditForm.coverUrl" placeholder="图片 URL，可留空"/>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="planEditForm.status">
+            <el-radio :label="0">草稿</el-radio>
+            <el-radio :label="1">上架</el-radio>
+            <el-radio :label="2">下架</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="planEditVisible = false">取消</el-button>
+        <el-button type="primary" :loading="planSaving" @click="savePlanEdit">保存</el-button>
+      </span>
+    </el-dialog>
+
     <!-- 模拟三方收银台 -->
     <el-dialog title="模拟收银台" :visible.sync="cashierVisible" width="420px">
       <div class="cc-cashier">
@@ -266,7 +337,20 @@ export default {
       acceptCommission: 0,
       applyDesc: '',
       applying: false,
-      planForm: { title: '', contentType: 1, price: '', deliveryDays: '' },
+      planForm: { title: '', contentType: 1, price: '', deliveryDays: '', coverUrl: '' },
+      planSaving: false,
+      planEditVisible: false,
+      planEditForm: {
+        id: null,
+        title: '',
+        contentType: 1,
+        price: '',
+        deliveryDays: '',
+        coverUrl: '',
+        status: 1
+      },
+      // 广场按约稿类型筛选：0=全部 1=插画 2=漫画 3=小说
+      squareType: 0,
       // 模拟收银台
       cashierVisible: false,
       cashierPaymentNo: '',
@@ -310,6 +394,12 @@ export default {
     this.loadMyOrders()
     this.loadArtistPanel()
   },
+  watch: {
+    // 从画师主页点“约稿”进来时带 artistId，切换画师时也能自动重新选中
+    '$route.query.artistId'(val) {
+      if (val) this.applyRouteArtist()
+    }
+  },
   methods: {
     statusText(s) {
       return { 0: '待支付', 1: '绘制中', 2: '待验收', 3: '已完成', 4: '已退款', 5: '已关闭' }[s] || '未知'
@@ -320,15 +410,52 @@ export default {
 
     // ---------- 广场 ----------
     loadSquare() {
-      this.request.get('Commission?action=artists&currentPage=1&pageSize=50').then(res => {
+      const typeFilter = this.squareType > 0 ? `&contentType=${this.squareType}` : ''
+      this.request.get(`Commission?action=artists&currentPage=1&pageSize=50${typeFilter}`).then(res => {
         this.artistList = (res && res.artistList) || []
+        // 换了筛选条件后：选中的人还在列表里就保留，否则清空
+        const keep = this.selectedArtist
+            ? this.artistList.find(a => String(a.id) === String(this.selectedArtist.id))
+            : null
+        if (keep) {
+          this.selectedArtist = keep
+          this.loadArtistPlans(keep.id)
+        } else {
+          this.selectedArtist = null
+          this.artistPlans = []
+          // 列表到了再按路由参数定位画师，否则拿不到对应的人
+          this.applyRouteArtist()
+        }
       })
+    },
+    onTypeChange() {
+      this.selectedArtist = null
+      this.artistPlans = []
+      this.loadSquare()
+    },
+    loadArtistPlans(artistId) {
+      const typeFilter = this.squareType > 0 ? `&contentType=${this.squareType}` : ''
+      this.request.get(`Commission?action=artistPlans&artistId=${artistId}${typeFilter}`).then(res => {
+        this.artistPlans = (res && res.planList) || []
+      })
+    },
+    // 从画师主页点“约稿”过来：自动切到广场并选中这位画师
+    applyRouteArtist() {
+      const artistId = this.$route.query.artistId
+      if (!artistId) return
+      const target = this.artistList.find(a => String(a.id) === String(artistId))
+      if (target) {
+        this.activeTab = 'square'
+        if (!this.selectedArtist || String(this.selectedArtist.id) !== String(target.id)) {
+          this.selectArtist(target)
+        }
+      } else {
+        this.$message.info('该画师当前未开启接稿，可在广场里看看其他画师')
+      }
     },
     selectArtist(a) {
       this.selectedArtist = a
-      this.request.get(`Commission?action=artistPlans&artistId=${a.id}`).then(res => {
-        this.artistPlans = (res && res.planList) || []
-      })
+      this.loadArtistPlans(a.id)
     },
     openOrderDialog(plan) {
       this.orderPlan = plan
@@ -570,33 +697,98 @@ export default {
         this.artistOrders = (res && res.orderList) || []
       })
     },
-    addPlan() {
+    // status: 1=直接上架，0=存草稿（草稿不会出现在约稿广场）
+    addPlan(status) {
       const f = this.planForm
-      if (!f.title.trim() || !f.price || !f.deliveryDays) {
-        return this.$message.warning('请填写方案标题、价格、交稿天数')
-      }
+      if (!f.title || !f.title.trim()) return this.$message.warning('请填写方案标题')
+      if (!f.price || Number(f.price) <= 0) return this.$message.warning('请填写正确的价格')
+      if (!f.deliveryDays || Number(f.deliveryDays) <= 0) return this.$message.warning('请填写正确的交稿天数')
+      this.planSaving = true
       const url = `Artist?action=planAdd&artistId=${this.user.id}` +
-          `&title=${encodeURIComponent(f.title)}&price=${f.price}&deliveryDays=${f.deliveryDays}` +
-          `&contentType=${f.contentType || 1}`
+          `&title=${encodeURIComponent(f.title.trim())}&price=${f.price}&deliveryDays=${f.deliveryDays}` +
+          `&contentType=${f.contentType || 1}&status=${status}` +
+          `&coverUrl=${encodeURIComponent(f.coverUrl || '')}`
       this.request.post(url).then(res => {
+        this.planSaving = false
         if (res && res.flag === 0) {
-          this.$message.success('方案已上架')
-          this.planForm = { title: '', contentType: 1, price: '', deliveryDays: '' }
+          this.$message.success(status === 1 ? '方案已上架，买家可以在广场下单' : '已存为草稿，可在表格里点「上架」')
+          this.planForm = { title: '', contentType: 1, price: '', deliveryDays: '', coverUrl: '' }
           this.loadMyPlans()
         } else {
           this.$message.error((res && res.message) || '新增失败')
         }
-      })
+      }).catch(() => { this.planSaving = false })
     },
-    setPlanStatus(plan, status) {
-      this.request.post(`Artist?action=planStatus&artistId=${this.user.id}&planId=${plan.id}&status=${status}`).then(res => {
+    planStatusText(status) {
+      return { 0: '草稿', 1: '上架中', 2: '已下架' }[status] || '未知'
+    },
+    planStatusType(status) {
+      return { 0: 'info', 1: 'success', 2: 'warning' }[status] || 'info'
+    },
+    openPlanEdit(plan) {
+      this.planEditForm = {
+        id: plan.id,
+        title: plan.title || '',
+        contentType: plan.contentType || 1,
+        price: plan.price,
+        deliveryDays: plan.deliveryDays,
+        coverUrl: plan.coverUrl || '',
+        status: plan.status == null ? 1 : plan.status
+      }
+      this.planEditVisible = true
+    },
+    savePlanEdit() {
+      const f = this.planEditForm
+      if (!f.title || !f.title.trim()) return this.$message.warning('请填写方案标题')
+      if (!f.price || Number(f.price) <= 0) return this.$message.warning('请填写正确的价格')
+      if (!f.deliveryDays || Number(f.deliveryDays) <= 0) return this.$message.warning('请填写正确的交稿天数')
+      this.planSaving = true
+      const url = `Artist?action=planEdit&artistId=${this.user.id}&planId=${f.id}` +
+          `&title=${encodeURIComponent(f.title.trim())}&price=${f.price}&deliveryDays=${f.deliveryDays}` +
+          `&contentType=${f.contentType || 1}&status=${f.status}` +
+          `&coverUrl=${encodeURIComponent(f.coverUrl || '')}`
+      this.request.post(url).then(res => {
+        this.planSaving = false
         if (res && res.flag === 0) {
-          this.$message.success('已更新')
+          this.$message.success('已保存')
+          this.planEditVisible = false
           this.loadMyPlans()
         } else {
-          this.$message.error('更新失败')
+          this.$message.error((res && res.message) || '保存失败')
         }
-      })
+      }).catch(() => { this.planSaving = false })
+    },
+    removePlan(plan) {
+      this.$confirm(
+          `删除后该方案不可恢复；如果已经有人下过单，系统会拒绝删除，只能下架。确定删除「${plan.title || ''}」？`,
+          '删除方案',
+          {type: 'warning', confirmButtonText: '删除', confirmButtonClass: 'el-button--danger'}
+      ).then(() => {
+        this.request.post(`Artist?action=planDelete&artistId=${this.user.id}&planId=${plan.id}`).then(res => {
+          if (res && res.flag === 0) {
+            this.$message.success('方案已删除')
+            this.loadMyPlans()
+          } else {
+            this.$message.error((res && res.message) || '删除失败')
+          }
+        })
+      }).catch(() => {})
+    },
+    setPlanStatus(plan, status) {
+      const action = status === 1 ? '上架' : '下架'
+      const tip = status === 1
+          ? `上架后买家就能在约稿广场下单「${plan.title || ''}」。确定上架？`
+          : `下架后买家将看不到「${plan.title || ''}」，已下单的订单不受影响。确定下架？`
+      this.$confirm(tip, action + '方案', {type: 'warning'}).then(() => {
+        this.request.post(`Artist?action=planStatus&artistId=${this.user.id}&planId=${plan.id}&status=${status}`).then(res => {
+          if (res && res.flag === 0) {
+            this.$message.success(action + '成功')
+            this.loadMyPlans()
+          } else {
+            this.$message.error((res && res.message) || (action + '失败'))
+          }
+        })
+      }).catch(() => {})
     },
     // 交付包上传成功 → 立刻写入订单
     handleDeliverSuccess(res, order) {
@@ -653,7 +845,12 @@ export default {
 .cc-plan-title { font-weight: 600; color: var(--text-primary); }
 .cc-plan-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 .cc-switch-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.cc-add-plan { display: flex; gap: 10px; align-items: center; }
+.cc-add-plan { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.cc-plan-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.cc-plan-head h3 { margin: 22px 0 10px; }
+.cc-filter { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.cc-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; display: block; }
+.cc-plan-cover { width: 68px; height: 68px; object-fit: cover; border-radius: 8px; margin-right: 14px; flex: 0 0 auto; }
 .cc-muted { color: var(--text-muted); font-size: 13px; }
 .cc-link { font-size: 12px; color: #0096fa; margin: 0 8px; }
 .cc-apply h3 { margin-bottom: 8px; }

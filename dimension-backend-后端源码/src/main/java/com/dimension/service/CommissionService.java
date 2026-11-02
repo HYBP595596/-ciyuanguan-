@@ -15,9 +15,16 @@ public interface CommissionService {
     int setAcceptCommission(Long artistId, Integer accept);
 
     CommissionPlan addPlan(Long artistId, String title, BigDecimal price, Integer deliveryDays,
-                           String coverUrl, Integer contentType);
+                           String coverUrl, Integer contentType, Integer status);
 
     int updatePlanStatus(Long artistId, Long planId, Integer status);
+
+    /** 编辑方案（含状态），返回受影响行数，0 表示方案不存在或不属于该画师 */
+    int updatePlan(Long artistId, Long planId, String title, BigDecimal price, Integer deliveryDays,
+                   String coverUrl, Integer contentType, Integer status);
+
+    /** 删除方案：>0 已删除；0 不存在/不属于你；-1 已有订单不能物理删除 */
+    int deletePlan(Long artistId, Long planId);
 
     List<CommissionPlan> getMyPlans(Long artistId);
 
@@ -26,17 +33,18 @@ public interface CommissionService {
     boolean deliverOrder(Long artistId, Long orderId, String type, String url);
 
     // ---------- 买家 / 广场 ----------
-    List<User> getAcceptingArtists(Integer pageNum, Integer pageSize);
+    /** contentType 非空时只返回有该类型上架方案的画师 */
+    List<User> getAcceptingArtists(Integer pageNum, Integer pageSize, Integer contentType);
 
-    long getAcceptingArtistTotal();
+    long getAcceptingArtistTotal(Integer contentType);
 
     User getArtist(Long artistId);
 
-    List<CommissionPlan> getArtistOnlinePlans(Long artistId);
+    List<CommissionPlan> getArtistOnlinePlans(Long artistId, Integer contentType);
 
-    List<CommissionPlan> getOnlinePlans(Integer pageNum, Integer pageSize);
+    List<CommissionPlan> getOnlinePlans(Integer pageNum, Integer pageSize, Integer contentType);
 
-    long getOnlinePlanTotal();
+    long getOnlinePlanTotal(Integer contentType);
 
     CommissionOrder createOrder(Long buyerId, Long planId, String requirement);
 

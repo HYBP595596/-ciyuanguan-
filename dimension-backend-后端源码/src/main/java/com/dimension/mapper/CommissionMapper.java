@@ -25,17 +25,34 @@ public interface CommissionMapper {
                          @Param("artistId") Long artistId,
                          @Param("status") Integer status);
 
-    List<CommissionPlan> getOnlinePlans(@Param("pageNum") Integer pageNum,
-                                        @Param("pageSize") Integer pageSize);
+    /** 编辑方案内容（标题/价格/交期/封面/类型/状态），归属校验走 artist_id */
+    int updatePlan(@Param("planId") Long planId,
+                   @Param("artistId") Long artistId,
+                   @Param("title") String title,
+                   @Param("price") BigDecimal price,
+                   @Param("deliveryDays") Integer deliveryDays,
+                   @Param("coverUrl") String coverUrl,
+                   @Param("contentType") Integer contentType,
+                   @Param("status") Integer status);
 
-    long getOnlinePlanTotal();
+    int deletePlan(@Param("planId") Long planId, @Param("artistId") Long artistId);
+
+    /** 该方案下有多少订单（有订单就不能物理删除，只能下架） */
+    int countOrdersByPlan(@Param("planId") Long planId);
+
+    List<CommissionPlan> getOnlinePlans(@Param("pageNum") Integer pageNum,
+                                        @Param("pageSize") Integer pageSize,
+                                        @Param("contentType") Integer contentType);
+
+    long getOnlinePlanTotal(@Param("contentType") Integer contentType);
 
     // ==================== 画师广场 ====================
-    /** 已通过认证且开启了接稿开关的画师 */
+    /** 已通过认证且开启了接稿开关的画师；contentType 非空时只返回有该类型上架方案的画师 */
     List<User> getAcceptingArtists(@Param("pageNum") Integer pageNum,
-                                   @Param("pageSize") Integer pageSize);
+                                   @Param("pageSize") Integer pageSize,
+                                   @Param("contentType") Integer contentType);
 
-    long getAcceptingArtistTotal();
+    long getAcceptingArtistTotal(@Param("contentType") Integer contentType);
 
     User getArtistById(@Param("artistId") Long artistId);
 

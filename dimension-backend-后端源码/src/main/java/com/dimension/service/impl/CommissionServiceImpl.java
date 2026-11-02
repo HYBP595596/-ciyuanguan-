@@ -10,6 +10,7 @@ import com.dimension.service.CommissionService;
 import com.dimension.utils.SessionUtil;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,8 @@ public class CommissionServiceImpl implements CommissionService {
 
     @Override
     public CommissionPlan addPlan(Long artistId, String title, BigDecimal price,
-                                  Integer deliveryDays, String coverUrl, Integer contentType) {
+                                  Integer deliveryDays, String coverUrl, Integer contentType,
+                                  Integer status) {
         User artist = mapper.getArtistById(artistId);
         if (artist == null || artist.getArtistStatus() == null || artist.getArtistStatus() != 2) {
             return null;
@@ -44,9 +46,28 @@ public class CommissionServiceImpl implements CommissionService {
         plan.setDeliveryDays(deliveryDays);
         plan.setCoverUrl(coverUrl);
         plan.setContentType(contentType == null ? 1 : contentType);
-        plan.setStatus(1); // 直接上架（Pixiv 风格：画师自行管理上下架）
+        // 0=草稿 1=上架 2=下架：默认直接上架，也可以先存草稿
+        plan.setStatus(status == null ? 1 : status);
         mapper.insertPlan(plan);
         return plan;
+    }
+
+    @Override
+    public int updatePlan(Long artistId, Long planId, String title, BigDecimal price,
+                          Integer deliveryDays, String coverUrl, Integer contentType, Integer status) {
+        return mapper.updatePlan(planId, artistId, title, price, deliveryDays, coverUrl, contentType, status);
+    }
+
+    @Override
+    public int deletePlan(Long artistId, Long planId) {
+        CommissionPlan plan = mapper.getPlanById(planId);
+        if (plan == null || plan.getArtistId() == null || !plan.getArtistId().equals(artistId)) {
+            return 0;
+        }
+        if (mapper.countOrdersByPlan(planId) > 0) {
+            return -1; // 已经有人下过单，只能下架不能删，避免历史订单查不到方案
+        }
+        return mapper.deletePlan(planId, artistId);
     }
 
     @Override
@@ -87,13 +108,13 @@ public class CommissionServiceImpl implements CommissionService {
     // ==================== 买家 / 广场 ====================
 
     @Override
-    public List<User> getAcceptingArtists(Integer pageNum, Integer pageSize) {
-        return mapper.getAcceptingArtists(pageNum, pageSize);
+    public List<User> getAcceptingArtists(Integer pageNum, Integer pageSize, Integer contentType) {
+        return mapper.getAcceptingArtists(pageNum, pageSize, contentType);
     }
 
     @Override
-    public long getAcceptingArtistTotal() {
-        return mapper.getAcceptingArtistTotal();
+    public long getAcceptingArtistTotal(Integer contentType) {
+        return mapper.getAcceptingArtistTotal(contentType);
     }
 
     @Override
@@ -102,18 +123,28 @@ public class CommissionServiceImpl implements CommissionService {
     }
 
     @Override
-    public List<CommissionPlan> getArtistOnlinePlans(Long artistId) {
-        return mapper.getPlansByArtist(artistId, 1);
+    public List<CommissionPlan> getArtistOnlinePlans(Long artistId, Integer contentType) {
+        List<CommissionPlan> list = mapper.getPlansByArtist(artistId, 1);
+        if (contentType == null || list == null) {
+            return list;
+        }
+        List<CommissionPlan> filtered = new ArrayList<>();
+        for (CommissionPlan plan : list) {
+            if (contentType.equals(plan.getContentType())) {
+                filtered.add(plan);
+            }
+        }
+        return filtered;
     }
 
     @Override
-    public List<CommissionPlan> getOnlinePlans(Integer pageNum, Integer pageSize) {
-        return mapper.getOnlinePlans(pageNum, pageSize);
+    public List<CommissionPlan> getOnlinePlans(Integer pageNum, Integer pageSize, Integer contentType) {
+        return mapper.getOnlinePlans(pageNum, pageSize, contentType);
     }
 
     @Override
-    public long getOnlinePlanTotal() {
-        return mapper.getOnlinePlanTotal();
+    public long getOnlinePlanTotal(Integer contentType) {
+        return mapper.getOnlinePlanTotal(contentType);
     }
 
     @Override

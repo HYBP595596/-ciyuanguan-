@@ -40,8 +40,8 @@ public class UserAuthUtil {
             if (user == null) {
                 return null;
             }
-            // 被禁用（status=1）的用户视为无效会话
-            if (user.getStatus() != null && user.getStatus() == 1) {
+            // 被禁用（status=1）或已注销（status=2）的用户视为无效会话
+            if (user.getStatus() != null && user.getStatus() != 0) {
                 return null;
             }
             user.setPassword(null);

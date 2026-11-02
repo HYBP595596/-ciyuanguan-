@@ -31,6 +31,8 @@
       <!-- 通用私信入口：任何人的主页都能发起对话，不限于约稿 -->
       <div class="uc-actions" v-if="!isSelf">
         <el-button size="small" type="primary" icon="el-icon-chat-dot-round" @click="openChat">私信 TA</el-button>
+        <!-- 认证画师且开启接稿时，直接在主页下单，不用再去约稿广场里翻人 -->
+        <el-button v-if="canCommission" size="small" type="warning" icon="el-icon-edit-outline" @click="goCommission">约稿</el-button>
       </div>
       <div class="uc-actions" v-else-if="user.artistStatus === 2">
         <el-button size="small" type="warning" @click="$router.push('/commission')">画师中心</el-button>
@@ -41,7 +43,7 @@
     <div class="uc-body">
       <el-tabs v-model="activeUserTabName" @tab-click="clickTab">
         <!-- 个人信息 -->
-        <el-tab-pane label="个人信息" name="infoTab" style="height: 330px">
+        <el-tab-pane label="个人信息" name="infoTab" style="min-height: 330px">
           <div class="info-pane">
             <el-form label-width="100px" label-position="left">
               <el-form-item label="账号">{{ user.username }}</el-form-item>
@@ -52,6 +54,20 @@
               </el-form-item>
               <el-form-item label="出生日期">{{ format2(user.birthday) }}</el-form-item>
             </el-form>
+
+            <!-- 账号安全：只有本人能注销自己的账号 -->
+            <div class="uc-danger-zone" v-if="isSelf">
+              <div class="uc-danger-title">账号安全</div>
+              <div class="uc-danger-row">
+                <div class="uc-danger-text">
+                  <div class="uc-danger-label">注销账号</div>
+                  <div class="uc-danger-desc">
+                    注销后账号无法再登录，昵称、头像、简介、背景会被清除；作品与评论保留，但显示为“已注销用户”。该操作不可恢复。
+                  </div>
+                </div>
+                <el-button type="danger" size="small" plain @click="openCancelAccount">注销账号</el-button>
+              </div>
+            </div>
           </div>
         </el-tab-pane>
 
@@ -300,6 +316,26 @@
       </span>
     </el-dialog>
 
+    <!-- 🚨 注销账号弹窗：必须输入正确的登录密码做二次确认 -->
+    <el-dialog title="注销账号" :visible.sync="cancelDialogVisible" width="480px">
+      <div class="uc-cancel-tip">
+        <p><b>注销后：</b></p>
+        <p>1. 账号无法再登录，登录密码立即失效，注册时用的账号也不会释放；</p>
+        <p>2. 昵称、头像、简介、背景会被清除，作品和评论保留但显示为“已注销用户”；</p>
+        <p>3. 画师认证与接稿方案会一并下架，未结算的约稿请先与买家/平台处理完。</p>
+        <p class="uc-cancel-warn">此操作不可恢复，请输入当前账号的密码确认。</p>
+      </div>
+      <el-form label-width="80px">
+        <el-form-item label="登录密码">
+          <el-input show-password v-model="cancelForm.password" placeholder="请输入当前账号的密码"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancelDialogVisible = false">我再想想</el-button>
+        <el-button type="danger" :loading="canceling" @click="confirmCancelAccount">确认注销</el-button>
+      </span>
+    </el-dialog>
+
     <!-- 编辑我的作品：分类 + 标签 -->
     <el-dialog title="编辑作品" :visible.sync="editDialogVisible" width="460px">
       <el-form label-width="80px">
@@ -381,7 +417,12 @@ export default {
 
       // 🚨 画师申请弹窗的状态
       applyArtistDialog: false,
-      applyForm: { desc: '' }
+      applyForm: { desc: '' },
+
+      // 🚨 注销账号弹窗的状态
+      cancelDialogVisible: false,
+      canceling: false,
+      cancelForm: { password: '' }
     }
   },
   mounted() {
@@ -398,6 +439,10 @@ export default {
     }
   },
   computed: {
+    // 看别人的主页时，只有“已认证且开启接稿”的画师才显示“约稿”按钮
+    canCommission() {
+      return this.user.artistStatus === 2 && this.user.acceptCommission === 1
+    },
     // el-upload 直传不经过 axios 拦截器，必须自己带上登录凭证
     uploadHeaders() {
       const headers = {};
@@ -520,6 +565,39 @@ export default {
       const self = JSON.parse(me)
       if (String(self.id) === String(this.user.id)) return
       this.$router.push({ path: '/messages', query: { peerId: this.user.id } })
+    },
+
+    // 认证画师主页的“约稿”：跳到约稿中心，并让广场自动选中这位画师
+    goCommission() {
+      this.$router.push({ path: '/commission', query: { artistId: this.user.id } })
+    },
+
+    // ---------- 注销账号 ----------
+    openCancelAccount() {
+      this.cancelForm.password = ''
+      this.cancelDialogVisible = true
+    },
+    confirmCancelAccount() {
+      if (!this.cancelForm.password) {
+        return this.$message.warning('请输入登录密码')
+      }
+      this.canceling = true
+      this.request
+          .post(`CancelAccount?userId=${this.me.id}&password=${encodeURIComponent(this.cancelForm.password)}`)
+          .then(res => {
+            this.canceling = false
+            if (!res || res.flag !== 0) {
+              return this.$message.error((res && res.message) || '注销失败')
+            }
+            this.cancelDialogVisible = false
+            this.$message.success({ message: '账号已注销，即将退出', duration: 1200 })
+            // 清空本地登录态，回到首页（与“退出登录”同一套处理）
+            setTimeout(() => {
+              sessionStorage.clear()
+              location.href = '/'
+            }, 1200)
+          })
+          .catch(() => { this.canceling = false })
     },
 
     beforeUpload() { this.$message.info('正在上传中，请稍等...') },

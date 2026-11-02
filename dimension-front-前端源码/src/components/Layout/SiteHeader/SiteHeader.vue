@@ -211,6 +211,10 @@ export default {
             sessionStorage.setItem('user', JSON.stringify(res.user))
             this.loginDialogVisible = false
             location.reload()
+          } else if (res.flag == 3) {
+            this.$message.error('该账号已注销，无法登录')
+          } else if (res.flag == 4) {
+            this.$message.error('该账号已被禁用')
           } else { this.$message.error('用户名或密码错误') }
         })
       })

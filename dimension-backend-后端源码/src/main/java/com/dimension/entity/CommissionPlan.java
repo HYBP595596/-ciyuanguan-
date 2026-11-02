@@ -13,7 +13,7 @@ public class CommissionPlan {
     private BigDecimal price;      // 价格
     private Integer deliveryDays;  // 交稿周期(天)
     private String coverUrl;       // 方案示例图
-    private Integer status;        // 0待审核 1上架中 2下架
+    private Integer status;        // 0草稿 1上架中 2已下架
     private Integer contentType;   // 约稿类型: 1插画 2漫画 3小说
     private Date createTime;
 

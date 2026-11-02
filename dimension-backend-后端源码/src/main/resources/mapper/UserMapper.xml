@@ -146,4 +146,21 @@
         SET artist_status = #{status}
         WHERE id = #{userId}
     </update>
+
+    <!--注销账号：软注销（status=2），密码换成不可用的随机哈希，资料脱敏，画师身份与接稿开关关闭-->
+    <update id="cancelAccount">
+        UPDATE dimension_user
+        SET status            = 2,
+            password          = #{password},
+            nickname          = #{nickname},
+            description       = NULL,
+            avatar            = NULL,
+            cover_image       = NULL,
+            cover_height      = NULL,
+            artist_status     = 0,
+            artist_apply_desc = NULL,
+            accept_commission = 0
+        WHERE id = #{userId}
+          AND status = 0
+    </update>
 </mapper>

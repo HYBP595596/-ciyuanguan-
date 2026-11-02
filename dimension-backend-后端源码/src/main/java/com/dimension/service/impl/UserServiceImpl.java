@@ -5,6 +5,7 @@ import com.dimension.entity.User;
 import com.dimension.mapper.UserMapper;
 import com.dimension.service.UserService;
 import com.dimension.utils.JwtUtil;
+import com.dimension.utils.PasswordUtil;
 import com.dimension.utils.SessionUtil;
 
 import javax.servlet.http.Cookie;
@@ -48,12 +49,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, Object> userLogin(String username, String password, HttpServletResponse resp) {
-        User user = userMapper.userLogin(username, password);
+        // 先按账号查人、再校验密码：
+        //   1) PasswordUtil 同时兼容历史明文密码和以后的哈希密码
+        //   2) 密码正确但账号已注销/已禁用时能给出准确提示，
+        //      而不是因为 SQL 里 password 不再匹配被误判成“账号或密码错误”
+        List<User> candidates = userMapper.getUserTableWithUsername(username);
+        User user = null;
+        User blocked = null;
+        if (candidates != null) {
+            for (User candidate : candidates) {
+                // 已注销/已禁用的账号密码已被替换，直接按状态拦下，避免被误报成“账号或密码错误”
+                if (candidate.getStatus() != null && candidate.getStatus() != 0) {
+                    blocked = candidate;
+                    continue;
+                }
+                if (PasswordUtil.matches(password, candidate.getPassword())) {
+                    user = candidate;
+                    break;
+                }
+            }
+        }
 
         Map<String, Object> result = new HashMap<>();
 
+        if (user == null && blocked != null) {
+            int status = blocked.getStatus();
+            result.put("flag", status == 2 ? 3 : 4);
+            result.put("message", status == 2 ? "该账号已注销" : "该账号已被禁用");
+            return result;
+        }
+
         if (user == null) {
             result.put("flag", 1);
+            return result;
+        }
+
+        // 已注销（status=2）与已禁用（status=1）的账号都不允许再登录
+        if (user.getStatus() != null && user.getStatus() == 2) {
+            result.put("flag", 3);
+            result.put("message", "该账号已注销");
+            return result;
+        }
+        if (user.getStatus() != null && user.getStatus() == 1) {
+            result.put("flag", 4);
+            result.put("message", "该账号已被禁用");
             return result;
         }
 
@@ -167,5 +206,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public int auditArtist(Long userId, Integer status) {
         return userMapper.auditArtist(userId, status);
+    }
+
+    @Override
+    public int cancelAccount(Long userId, String password, String nickname) {
+        return userMapper.cancelAccount(userId, password, nickname);
     }
 }

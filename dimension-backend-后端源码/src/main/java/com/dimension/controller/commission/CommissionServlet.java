@@ -58,20 +58,23 @@ public class CommissionServlet extends HttpServlet {
                 case "artists": {
                     Integer pageNum = PageUtil.getPageNum(req);
                     Integer pageSize = PageUtil.getPageSize(req);
-                    List<User> list = commissionService.getAcceptingArtists(pageNum, pageSize);
+                    // 按约稿类型筛广场：只显示有该类型上架方案的画师
+                    Integer contentType = intParam(req, "contentType");
+                    List<User> list = commissionService.getAcceptingArtists(pageNum, pageSize, contentType);
                     // 不向前端暴露密码
                     for (User u : list) {
                         u.setPassword(null);
                     }
                     JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
                             .put("artistList", list)
-                            .put("total", commissionService.getAcceptingArtistTotal())
+                            .put("total", commissionService.getAcceptingArtistTotal(contentType))
                             .build());
                     return;
                 }
                 case "artistPlans": {
                     Long artistId = Long.valueOf(req.getParameter("artistId"));
-                    List<CommissionPlan> list = commissionService.getArtistOnlinePlans(artistId);
+                    Integer contentType = intParam(req, "contentType");
+                    List<CommissionPlan> list = commissionService.getArtistOnlinePlans(artistId, contentType);
                     User artist = commissionService.getArtist(artistId);
                     if (artist != null) {
                         artist.setPassword(null);
@@ -85,10 +88,11 @@ public class CommissionServlet extends HttpServlet {
                 case "onlinePlans": {
                     Integer pageNum = PageUtil.getPageNum(req);
                     Integer pageSize = PageUtil.getPageSize(req);
-                    List<CommissionPlan> list = commissionService.getOnlinePlans(pageNum, pageSize);
+                    Integer contentType = intParam(req, "contentType");
+                    List<CommissionPlan> list = commissionService.getOnlinePlans(pageNum, pageSize, contentType);
                     JsonResultOutputUtil.outputJsonResult(resp, MapUtil.builder()
                             .put("planList", list)
-                            .put("total", commissionService.getOnlinePlanTotal())
+                            .put("total", commissionService.getOnlinePlanTotal(contentType))
                             .build());
                     return;
                 }
@@ -219,5 +223,18 @@ public class CommissionServlet extends HttpServlet {
             return (Admin) attr;
         }
         return AdminAuthUtil.resolve(AdminAuthUtil.extractToken(req));
+    }
+
+    /** 可选 int 参数：缺省或非法时返回 null，表示“不过滤” */
+    private Integer intParam(HttpServletRequest req, String name) {
+        String raw = req.getParameter(name);
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

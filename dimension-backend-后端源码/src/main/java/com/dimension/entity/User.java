@@ -26,7 +26,7 @@ public class User {
      */
     private String description;
     /**
-     * 状态 (0-可用 1-禁用)
+     * 状态 (0-可用 1-禁用 2-已注销)
      */
     private Integer status;
     /**

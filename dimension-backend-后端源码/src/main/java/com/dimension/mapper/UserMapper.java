@@ -57,4 +57,11 @@ public interface UserMapper {
 
     int auditArtist(@Param("userId") Long userId, @Param("status") Integer status);
 
+    /**
+     * 注销账号（软注销）：status 置为 2，密码/昵称脱敏，画师身份与接稿开关一并关闭
+     */
+    int cancelAccount(@Param("userId") Long userId,
+                      @Param("password") String password,
+                      @Param("nickname") String nickname);
+
 }

@@ -376,3 +376,62 @@
   border: 3px solid rgba(255, 255, 255, .8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
 }
+
+/* ================= 账号安全：注销账号 ================= */
+.uc-danger-zone {
+  max-width: 620px;
+  margin: 10px 0 0;
+  padding: 14px 16px;
+  border: 1px solid #f3c6c6;
+  border-radius: 8px;
+  background: #fdf6f6;
+}
+
+.uc-danger-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  margin-bottom: 10px;
+}
+
+.uc-danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.uc-danger-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.uc-danger-label {
+  font-size: 13px;
+  color: var(--text-primary, #303133);
+  margin-bottom: 4px;
+}
+
+.uc-danger-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary, #909399);
+}
+
+/* 注销确认弹窗文案 */
+.uc-cancel-tip {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary, #909399);
+  margin-bottom: 12px;
+}
+
+.uc-cancel-tip p {
+  margin: 0;
+}
+
+.uc-cancel-warn {
+  margin-top: 8px !important;
+  color: #f56c6c;
+  font-weight: 600;
+}

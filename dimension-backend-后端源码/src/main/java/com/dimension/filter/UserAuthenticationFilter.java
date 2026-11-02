@@ -31,7 +31,7 @@ public class UserAuthenticationFilter implements Filter {
     /** 必须登录（用户或管理员）才能访问 */
     private static final Set<String> PROTECTED = new HashSet<>(Arrays.asList(
             // 账号
-            "/ApplyArtist", "/UpdateUserInfo", "/UpdateUserPassword",
+            "/ApplyArtist", "/UpdateUserInfo", "/UpdateUserPassword", "/CancelAccount",
             "/UpdateUserAvatar", "/UpdateUserCover", "/GetUserRateCase",
             // 作品
             "/AddImage", "/CommentImage", "/UploadImageOrUserAvatar", "/RemoveUploadedImage",

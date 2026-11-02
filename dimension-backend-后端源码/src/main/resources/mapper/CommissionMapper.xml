@@ -35,11 +35,35 @@
         WHERE id = #{planId} AND artist_id = #{artistId}
     </update>
 
+    <update id="updatePlan">
+        UPDATE dimension_commission_plan
+        SET title         = #{title},
+            price         = #{price},
+            delivery_days = #{deliveryDays},
+            cover_url     = #{coverUrl},
+            content_type  = #{contentType},
+            status        = #{status}
+        WHERE id = #{planId}
+          AND artist_id = #{artistId}
+    </update>
+
+    <delete id="deletePlan">
+        DELETE FROM dimension_commission_plan
+        WHERE id = #{planId} AND artist_id = #{artistId}
+    </delete>
+
+    <select id="countOrdersByPlan" resultType="int">
+        SELECT COUNT(*) FROM dimension_commission_order WHERE plan_id = #{planId}
+    </select>
+
     <select id="getOnlinePlans" resultType="com.dimension.entity.CommissionPlan">
         SELECT p.*, u.nickname AS artistNickname, u.avatar AS artistAvatar
         FROM dimension_commission_plan p
                  INNER JOIN dimension_user u ON u.id = p.artist_id
         WHERE p.status = 1 AND u.artist_status = 2
+        <if test="contentType != null">
+            AND p.content_type = #{contentType}
+        </if>
         ORDER BY p.id DESC
         LIMIT #{pageNum}, #{pageSize}
     </select>
@@ -48,18 +72,34 @@
         SELECT COUNT(*) FROM dimension_commission_plan p
             INNER JOIN dimension_user u ON u.id = p.artist_id
         WHERE p.status = 1 AND u.artist_status = 2
+        <if test="contentType != null">
+            AND p.content_type = #{contentType}
+        </if>
     </select>
 
     <!-- ==================== 画师广场 ==================== -->
     <select id="getAcceptingArtists" resultType="com.dimension.entity.User">
-        SELECT * FROM dimension_user
-        WHERE artist_status = 2 AND accept_commission = 1
-        ORDER BY id DESC
+        SELECT u.* FROM dimension_user u
+        WHERE u.artist_status = 2 AND u.accept_commission = 1
+        <if test="contentType != null">
+            AND EXISTS (
+                SELECT 1 FROM dimension_commission_plan p
+                WHERE p.artist_id = u.id AND p.status = 1 AND p.content_type = #{contentType}
+            )
+        </if>
+        ORDER BY u.id DESC
         LIMIT #{pageNum}, #{pageSize}
     </select>
 
     <select id="getAcceptingArtistTotal" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM dimension_user WHERE artist_status = 2 AND accept_commission = 1
+        SELECT COUNT(*) FROM dimension_user u
+        WHERE u.artist_status = 2 AND u.accept_commission = 1
+        <if test="contentType != null">
+            AND EXISTS (
+                SELECT 1 FROM dimension_commission_plan p
+                WHERE p.artist_id = u.id AND p.status = 1 AND p.content_type = #{contentType}
+            )
+        </if>
     </select>
 
     <select id="getArtistById" resultType="com.dimension.entity.User">

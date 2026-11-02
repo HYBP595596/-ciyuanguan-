@@ -44,5 +44,14 @@ public interface UserService {
 
     int auditArtist(Long userId, Integer status);
 
+    /**
+     * 注销账号（软注销）
+     *
+     * @param userId   要注销的用户
+     * @param password 注销后写入的随机密码（旧密码立即失效）
+     * @param nickname 注销后展示的脱敏昵称，如“已注销用户12”
+     * @return 受影响行数，0 表示用户不存在或已被禁用/注销
+     */
+    int cancelAccount(Long userId, String password, String nickname);
 
 }
